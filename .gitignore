@@ -1,0 +1,4 @@
+build*
+*.user
+jast
+unit-test/googletest
