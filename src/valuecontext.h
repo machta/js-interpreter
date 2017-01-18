@@ -102,6 +102,8 @@ public:
 	{
 		switch (type)
 		{
+		case ValueType::Undefined:
+			return "undefined";
 		case ValueType::Reference:
 			return ""; // TODO: Check this.
 		case ValueType::Boolean:

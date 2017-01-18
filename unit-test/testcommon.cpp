@@ -13,10 +13,9 @@ const double ABSOLUTE_ERROR = 0.000001;
 string execute(const string& code)
 {
 	Parser p;
+	ValueContext context;
 
 	grok::parser::Expression* e = p.makeAST(code);
-
-	ValueContext context;
 
 	Interpreter interpreter(&context);
 	e->Accept(&interpreter);

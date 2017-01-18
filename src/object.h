@@ -25,6 +25,7 @@ public:
 	{}
 };
 
+// TODO: Forbid copying of this class.
 class Object
 {
 	ObjectType type;

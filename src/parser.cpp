@@ -29,11 +29,15 @@ grok::parser::Expression* Parser::makeAST(string code)
 	grok::parser::Expression *ast = nullptr;
 
 	// TODO: Save the above objects, so that they don't have to be created every time.
-	try {
+	try
+	{
 		ast = grok::parser::ParseProgram(parser, code);
-	} catch (std::exception &) {
+	}
+	catch (std::exception &)
+	{
 		std::cout << "\x1b[33mError\x1b[0m" << std::endl;
 		grok::parser::LexerInfo::Restart();
+		ast = nullptr;
 	}
 
 	delete parser;
