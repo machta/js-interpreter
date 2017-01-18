@@ -22,7 +22,7 @@ string execute(const string& code)
 	e->Accept(&interpreter);
 
 	delete e;
-	return interpreter.lastStatementToString();
+	return interpreter.lastStatementValue().toString();
 }
 
 } // namespace

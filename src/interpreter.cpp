@@ -1,5 +1,7 @@
 #include "interpreter.h"
 
+#include "object.h"
+
 #include <cmath>
 
 using namespace std;
@@ -8,6 +10,7 @@ using namespace grok::parser;
 #define UNDEFINED Value()
 
 #define NOT_SUPPORTED throw runtime_error("not supported")
+//#define NOT_SUPPORTED assert(0)
 
 void Interpreter::Visit(NullLiteral *literal)
 {
@@ -54,7 +57,18 @@ void Interpreter::Visit(ArrayLiteral *literal)
 
 void Interpreter::Visit(ObjectLiteral *literal)
 {
-	NOT_SUPPORTED;
+	ProxyObject &obj = literal->proxy();
+
+	ValueContext* objectContext = new ValueContext();
+
+	for (auto& p : obj)
+	{
+		p.second->Accept(this);
+		objectContext->addNamedValue(p.first, returnValue);
+	}
+
+	returnValue = Value(new Object(objectContext));
+
 //	ProxyObject &obj = literal->proxy();
 
 //	os() << "{ ";
@@ -90,7 +104,31 @@ void Interpreter::Visit(RegExpLiteral *reg)
 
 void Interpreter::Visit(ArgumentList *args)
 {
-	NOT_SUPPORTED;
+	auto list = args->args();
+
+	FunctionProtorype* fun = returnValue.reference->functionProtorype;
+
+	if (!list)
+	{
+		for (unsigned int i = 0; i < fun->arguments.size(); i++)
+			context().addNamedValue(fun->arguments[i], Value());
+		return;
+	}
+
+	auto it = list->begin();
+
+	for (unsigned int i = 0; i < fun->arguments.size(); i++)
+	{
+		if (it != list->end())
+			(*it)->Accept(this);
+		else
+			returnValue = Value();
+
+		context().addNamedValue(fun->arguments[i], returnValue);
+
+		it++;
+	}
+
 //	auto list = args->args();
 //	os() << "(";
 //	if (!list) {
@@ -134,7 +172,27 @@ void Interpreter::Visit(CallExpression *expr)
 
 void Interpreter::Visit(MemberExpression *expr)
 {
-	NOT_SUPPORTED;
+	expr->expr()->Accept(this);
+	Value val = returnValue;
+
+	switch (expr->kind()) {
+	case MemberAccessKind::kCall:
+		contextPush();
+		expr->member()->Accept(this);
+		val.reference->functionBody->Accept(this);
+		contextPop();
+		break;
+	case MemberAccessKind::kDot:
+	case MemberAccessKind::kIndex:
+		contextPush(val.reference->objectContext);
+		expr->member()->Accept(this);
+		//val.reference->
+		contextPop();
+		break;
+	default:
+		throw std::runtime_error("bad member expression");
+	}
+
 //	expr->expr()->Accept(this);
 
 //	switch (expr->kind()) {
@@ -542,6 +600,14 @@ void Interpreter::Visit(BlockStatement *stmt)
 	for (auto &expr : *list)
 	{
 		expr->Accept(this);
+
+		if (returnStatement)
+		{
+			returnStatement = false;
+			break;
+		}
+		if (breakStatement || continueStatement)
+			break;
 	}
 	contextPop();
 
@@ -580,6 +646,14 @@ void Interpreter::Visit(ForStatement *stmt)
 		}
 
 		stmt->body()->Accept(this);
+
+		if (breakStatement)
+		{
+			breakStatement = false;
+			break;
+		}
+		if (continueStatement)
+			continueStatement = false;
 
 		if (update)
 		{
@@ -626,6 +700,14 @@ void Interpreter::Visit(WhileStatement *stmt)
 			break;
 
 		stmt->body()->Accept(this);
+
+		if (breakStatement)
+		{
+			breakStatement = false;
+			break;
+		}
+		if (continueStatement)
+			continueStatement = false;
 	}
 
 //	os() << "while (";
@@ -657,7 +739,7 @@ void Interpreter::Visit(DoWhileStatement *stmt)
 
 void Interpreter::Visit(BreakStatement *stmt)
 {
-	NOT_SUPPORTED;
+	breakStatement = true;
 
 //	os() << "break";
 //	if (stmt->label()) {
@@ -669,7 +751,7 @@ void Interpreter::Visit(BreakStatement *stmt)
 
 void Interpreter::Visit(ContinueStatement *stmt)
 {
-	NOT_SUPPORTED;
+	continueStatement = true;
 
 //	os() << "continue";
 //	if (stmt->label()) {
@@ -752,7 +834,14 @@ void Interpreter::Visit(SwitchStatement *stmt)
 
 void Interpreter::Visit(FunctionPrototype *proto)
 {
-	NOT_SUPPORTED;
+	FunctionProtorype* fun = new FunctionProtorype(proto->GetName());
+
+	for (const auto& arg : proto->GetArgs())
+	{
+		fun->arguments.push_back(arg);
+	}
+
+	returnValue = Value(new Object(fun));
 
 //	os() << "function " << proto->GetName() << "(";
 
@@ -771,7 +860,8 @@ void Interpreter::Visit(FunctionPrototype *proto)
 
 void Interpreter::Visit(FunctionStatement *stmt)
 {
-	NOT_SUPPORTED;
+	stmt->proto()->Accept(this);
+	returnValue.reference->functionBody = stmt->body();
 
 //	stmt->proto()->Accept(this);
 //	os() << " {\n";
@@ -815,7 +905,10 @@ void Interpreter::Visit(IfElseStatement *stmt)
 
 void Interpreter::Visit(ReturnStatement *stmt)
 {
-	NOT_SUPPORTED;
+	if (stmt->expr())
+		stmt->expr()->Accept(this);
+
+	returnStatement = true;
 
 //	os() << "return ";
 //	if (stmt->expr())

@@ -35,4 +35,22 @@ TEST(expression_test, first_test)
 	TestCommon::testExpression("\"bla bla\"", "var a = \"bla bla\"; a;");
 	TestCommon::testExpression("'bla'' ''bla bla'", "var a = 'bla';\n var b = 'bla bla';\n var c = a + ' ' + b; c;"); // Parser fails when there are more than one string literals on one line.
 	TestCommon::testExpression("'bla bla'", "var a = 'bla';\n var b = 'bla bla'; var c = b; c;");
+
+	TestCommon::testExpression(10, "var c = 2; var a = { property: 5*c }; a.property;");
+	//TestCommon::testExpression(10, "var c = 2; var a = { property: 5*c }; a.['property'];"); // This doesn't work as well.
+
+	TestCommon::testExpression(16, "var fun = function(a){ return a*a; }; fun(fun(2));");
+	TestCommon::testExpression(5, "var fun = function(){ return 5; return 10; }; fun();");
+
+	TestCommon::testExpression(10, "var a = 0; for (b = 0; b < 10; b++){ a++;} a;");
+	TestCommon::testExpression(5, "var a = 0; for (b = 0; b < 10; b++){ if (a >= 5) {break;} a++;} a;");
+	//TestCommon::testExpression(5, "var a = 0; for (b = 0; b < 10; b++){ if (a >= 5) break; a++;} a;"); // Cannot parse break;
+	//TestCommon::testExpression(5, "var a = 0; for (;;){ if (a >= 5) break;} a;"); // Weird undefined phantom variable.
+	TestCommon::testExpression(5, "var a = 0; for (b = 0; b < 10; b++){ if (a >= 5) {continue;} a++;} a;");
+	//TestCommon::testExpression(5, "var a = 0; for (b = 0; b < 10; b++){ if (a >= 5) continue; a++;} a;"); // Cannot parse this continue.
+
+	TestCommon::testExpression(5, "var a = 0; while(true){ if (a >= 5) {break;} a++;} a;");
+	//TestCommon::testExpression(5, "var a = 0; var b = 0; while(b < 10){ b++; if (a >= 5) break; a++;} a;"); // Cannot parse break;
+	TestCommon::testExpression(5, "var a = 0; var b = 0; while(b < 10){ b++; if (a >= 5) {continue;} a++;} a;");
+	//TestCommon::testExpression(5, "var a = 0; var b = 0; while(b < 10){ b++; if (a >= 5) continue; a++;} a;"); // Cannot parse this continue.
 }

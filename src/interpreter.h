@@ -16,9 +16,9 @@ public:
 		contextStack.push(context);
 	}
 
-	std::string lastStatementToString()
+	Value lastStatementValue()
 	{
-		return returnValue.toString();
+		return returnValue;
 	}
 public:
 #define DECLARE_VISITOR_METHOD(type) void Visit(grok::parser::type *) override;
@@ -30,6 +30,9 @@ private:
 	Value returnValue;
 	std::string returnVarName;
 	ValueContext* returnVarContext = nullptr;
+	bool returnStatement = false;
+	bool breakStatement = false;
+	bool continueStatement = false;
 
 	ValueContext& context()
 	{
@@ -38,7 +41,11 @@ private:
 	}
 	void contextPush()
 	{
-		contextStack.push(new ValueContext(&context()));
+		contextPush(new ValueContext(&context()));
+	}
+	void contextPush(ValueContext* context)
+	{
+		contextStack.push(context);
 	}
 	void contextPop()
 	{

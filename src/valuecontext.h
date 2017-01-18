@@ -6,6 +6,8 @@
 #include <unordered_map>
 #include <cassert>
 
+class Object;
+
 enum class ValueType
 {
 	Undefined, Reference, Boolean, Number, String // TODO: possibly change Undefined to null
@@ -17,12 +19,14 @@ class Value
 
 public:
 	// TODO: Make a union out of these and possibly make them private.
+	Object* reference;
 	bool booleanValue;
 	double numberValue;
 	char* stringValue = nullptr;
 
 	Value() : type(ValueType::Undefined) {}
-	Value(ValueType type) : type(type) {}
+	//Value(ValueType type) : type(type) {}
+	Value(Object* value) : type(ValueType::Reference), reference(value) {}
 	Value(bool value) : type(ValueType::Boolean), booleanValue(value) {}
 	Value(double value) : type(ValueType::Number), numberValue(value) {}
 	Value(int value) : type(ValueType::Number), numberValue(value) {}
@@ -125,7 +129,8 @@ private:
 		switch (type)
 		{
 		case ValueType::Reference:
-			break; // TODO: Check this.
+			reference = v.reference;
+			break;
 		case ValueType::Boolean:
 			booleanValue = v.booleanValue;
 			break;
