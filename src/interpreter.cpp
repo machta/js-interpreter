@@ -5,7 +5,7 @@
 using namespace std;
 using namespace grok::parser;
 
-#define UNDEFINED nullptr
+#define UNDEFINED Value()
 
 #define NOT_SUPPORTED throw runtime_error("not supported")
 
@@ -29,13 +29,13 @@ void Interpreter::Visit(ThisHolder *holder)
 
 void Interpreter::Visit(IntegralLiteral *literal)
 {
-	returnValue(new NumberValue(literal->value()));
+	returnValue = Value(literal->value());
 //	os() << literal->value();
 }
 
 void Interpreter::Visit(StringLiteral *literal)
 {
-	returnValue(literal->string());
+	returnValue = Value(literal->string().c_str(), literal->string().length());
 //	os() << literal->string();
 }
 
@@ -68,8 +68,8 @@ void Interpreter::Visit(ObjectLiteral *literal)
 
 void Interpreter::Visit(Identifier *id)
 {
-	auto var = context().namedValue(id->GetName());
-	returnValue(var.second); // TODO: Handle undefined names.
+	auto var = context().namedValue(id->GetName()); // TODO: Handle undefined names.
+	returnValue = var.second;
 	returnVarName = id->GetName();
 	returnVarContext = var.first;
 
@@ -78,7 +78,7 @@ void Interpreter::Visit(Identifier *id)
 
 void Interpreter::Visit(BooleanLiteral *literal)
 {
-	returnValue(literal->pred());
+	returnValue = Value(literal->pred());
 //	os() << std::boolalpha << literal->pred();
 }
 
@@ -165,7 +165,6 @@ void Interpreter::Visit(NewExpression *expr)
 void Interpreter::Visit(PrefixExpression *expr)
 {
 	expr->expr()->Accept(this);
-	Value* val = returnValue();
 	string varName = returnVarName;
 	returnVarName = "";
 	ValueContext* varContext = returnVarContext;
@@ -174,16 +173,16 @@ void Interpreter::Visit(PrefixExpression *expr)
 	switch (expr->op()) {
 	case PrefixOperation::kIncrement:
 	{
-		double d = val->toNumber() + 1;
-		varContext->addNamedValue(varName, new NumberValue(d));
-		returnValue(d);
+		double d = returnValue.toNumber() + 1;
+		varContext->addNamedValue(varName, Value(d));
+		returnValue = Value(d);
 		return;
 	}
 	case PrefixOperation::kDecrement:
 	{
-		double d = val->toNumber() - 1;
-		varContext->addNamedValue(varName, new NumberValue(d));
-		returnValue(d);
+		double d = returnValue.toNumber() - 1;
+		varContext->addNamedValue(varName, Value(d));
+		returnValue = Value(d);
 		return;
 	}
 //	case PrefixOperation::kTypeOf:
@@ -194,16 +193,16 @@ void Interpreter::Visit(PrefixExpression *expr)
 //		break;
 	case PrefixOperation::kBitNot:
 	{
-		int i = ~static_cast<int>(val->toNumber());
-		varContext->addNamedValue(varName, new NumberValue(i));
-		returnValue(i);
+		int i = ~static_cast<int>(returnValue.toNumber());
+		varContext->addNamedValue(varName, Value(i));
+		returnValue = Value(i);
 		return;
 	}
 	case PrefixOperation::kNot:
 	{
-		double b = ~val->toBoolean();
-		varContext->addNamedValue(varName, new BooleanValue(b));
-		returnValue(b);
+		double b = ~returnValue.toBoolean();
+		varContext->addNamedValue(varName, Value(b));
+		returnValue = Value(b);
 		return;
 	}
 //	case PrefixOperation::kVoid:
@@ -244,21 +243,20 @@ void Interpreter::Visit(PrefixExpression *expr)
 void Interpreter::Visit(PostfixExpression *expr)
 {
 	expr->expr()->Accept(this);
-	Value* val = returnValue();
 	string name = returnVarName;
 	returnVarName = "";
 	ValueContext* varContext = returnVarContext;
 	assert(varContext != nullptr);
-	double d = val->toNumber();
+	double d = returnValue.toNumber();
 
 	switch (expr->op()) {
 	case PostfixOperation::kIncrement:
-		varContext->addNamedValue(name, new NumberValue(d + 1));
-		returnValue(d);
+		varContext->addNamedValue(name, Value(d + 1));
+		returnValue = Value(d);
 		return;
 	case PostfixOperation::kDecrement:
-		varContext->addNamedValue(name, new NumberValue(d - 1));
-		returnValue(d);
+		varContext->addNamedValue(name, Value(d - 1));
+		returnValue = Value(d);
 		return;
 	}
 
@@ -280,18 +278,19 @@ void Interpreter::Visit(PostfixExpression *expr)
 void Interpreter::Visit(BinaryExpression *expr)
 {
 	expr->lhs()->Accept(this);
-	Value* lhs = returnValue();
-	ValueType lhsType = lhs->getType();
+	Value lhs = returnValue;
+	ValueType lhsType = lhs.valueType();
 
 	expr->rhs()->Accept(this);
-	Value* rhs = returnValue();
-	ValueType rhsType = rhs->getType();
+	Value rhs = returnValue;
+	ValueType rhsType = rhs.valueType();
 
 	if (lhsType == ValueType::String || rhsType == ValueType::String)
 	{
 		if (expr->op() == BinaryOperation::kAddition)
 		{
-			returnValue(lhs->toString() + rhs->toString());
+			string tmp = lhs.toString() + rhs.toString();
+			returnValue = Value(tmp.c_str(), tmp.length());
 		}
 		else
 		{
@@ -306,41 +305,41 @@ void Interpreter::Visit(BinaryExpression *expr)
 
 	//double l = dynamic_cast<NumberValue*>(lhs)->value;
 	//double r = dynamic_cast<NumberValue*>(rhs)->value;
-	double l = lhs->toNumber();
-	double r = rhs->toNumber();
+	double l = lhs.toNumber();
+	double r = rhs.toNumber();
 	int li = l, ri = r;
 
 	switch (expr->op()) {
 	case BinaryOperation::kAddition:
-		returnValue(l + r); return;
+		returnValue = Value(l + r); return;
 	case BinaryOperation::kMultiplication:
-		returnValue(l * r); return;
+		returnValue = Value(l * r); return;
 	case BinaryOperation::kSubtraction:
-		returnValue(l - r); return;
+		returnValue = Value(l - r); return;
 	case BinaryOperation::kDivision:
-		returnValue(l / r); return;
+		returnValue = Value(l / r); return;
 	case BinaryOperation::kMod:
-		returnValue(fmod(l, r)); return;
+		returnValue = Value(fmod(l, r)); return;
 	case BinaryOperation::kShiftRight:
-		returnValue(li >> ri); return;
+		returnValue = Value(li >> ri); return;
 	case BinaryOperation::kShiftLeft:
-		returnValue(li << ri); return;
+		returnValue = Value(li << ri); return;
 	case BinaryOperation::kLessThan:
-		returnValue(l < r); return;
+		returnValue = Value(l < r); return;
 	case BinaryOperation::kGreaterThan:
-		returnValue(l > r); return;
+		returnValue = Value(l > r); return;
 	case BinaryOperation::kLessThanEqual:
-		returnValue(l <= r); return;
+		returnValue = Value(l <= r); return;
 	case BinaryOperation::kGreaterThanEqual:
-		returnValue(l >= r); return;
+		returnValue = Value(l >= r); return;
 	case BinaryOperation::kEqual:
-		returnValue(l == r); return;
+		returnValue = Value(l == r); return;
 	case BinaryOperation::kNotEqual:
-		returnValue(l != r); return;
+		returnValue = Value(l != r); return;
 	case BinaryOperation::kStrictEqual:
-		returnValue(l == r && lhs->getType() == rhs->getType()); return;
+		returnValue = Value(l == r && lhs.valueType() == rhs.valueType()); return;
 	case BinaryOperation::kStrictNotEqual:
-		returnValue(l != r || lhs->getType() != rhs->getType()); return;
+		returnValue = Value(l != r || lhs.valueType() != rhs.valueType()); return;
 //	case BinaryOperation::kAnd:
 //		os() << "&&";
 //		break;
@@ -348,24 +347,24 @@ void Interpreter::Visit(BinaryExpression *expr)
 //		os() << "||";
 //		break;
 	case BinaryOperation::kBitAnd:
-		returnValue(li & ri); return;
+		returnValue = Value(li & ri); return;
 	case BinaryOperation::kBitOr:
-		returnValue(li | ri); return;
+		returnValue = Value(li | ri); return;
 	case BinaryOperation::kBitXor:
-		returnValue(li ^ ri); return;
+		returnValue = Value(li ^ ri); return;
 //	case BinaryOperation::kInstanceOf:
 //		os() << "instanceof";
 //		break;
 	}
 
-	bool lb = lhs->toBoolean();
-	bool rb = rhs->toBoolean();
+	bool lb = lhs.toBoolean();
+	bool rb = rhs.toBoolean();
 
 	switch (expr->op()) {
 	case BinaryOperation::kAnd:
-		returnValue(lb && rb); return;
+		returnValue = Value(lb && rb); return;
 	case BinaryOperation::kOr:
-		returnValue(lb || rb); return;
+		returnValue = Value(lb || rb); return;
 	}
 
 #pragma GCC diagnostic pop
@@ -449,24 +448,16 @@ void Interpreter::Visit(AssignExpression *expr)
 	// TODO: Handle declarations without var (for example in for statements)?
 
 	expr->rhs()->Accept(this);
-	Value* rhs = returnValue();
+	Value rhs = returnValue;
 
 	expr->lhs()->Accept(this);
 	if (returnVarContext == nullptr)
 	{
-		context().addNamedValue(returnVarName, nullptr);
+		context().addNamedValue(returnVarName, Value());
 		returnVarContext = &context();
 	}
 
-	switch (rhs->getType())
-	{
-	case ValueType::Boolean:
-		returnVarContext->addNamedValue(returnVarName, new BooleanValue(rhs->toBoolean())); return;
-	case ValueType::Number:
-		returnVarContext->addNamedValue(returnVarName, new NumberValue(rhs->toNumber())); return;
-	case ValueType::String:
-		returnVarContext->addNamedValue(returnVarName, new StringValue(rhs->toString())); return;
-	};
+	returnVarContext->addNamedValue(returnVarName, rhs);
 
 	returnVarName = "";
 	returnVarContext = nullptr;
@@ -478,7 +469,16 @@ void Interpreter::Visit(AssignExpression *expr)
 
 void Interpreter::Visit(TernaryExpression *expr)
 {
-	NOT_SUPPORTED;
+	expr->first()->Accept(this);
+	if (returnValue.toBoolean())
+	{
+		expr->second()->Accept(this);
+	}
+	else
+	{
+		expr->third()->Accept(this);
+	}
+
 //	expr->first()->Accept(this);
 //	os() << " ? ";
 //	expr->second()->Accept(this);
@@ -508,7 +508,7 @@ void Interpreter::Visit(Declaration *decl)
 	if (decl->expr())
 	{
 		decl->expr()->Accept(this);
-		context().addNamedValue(decl->name(), returnValue());
+		context().addNamedValue(decl->name(), returnValue);
 	}
 	else
 	{
@@ -537,13 +537,12 @@ void Interpreter::Visit(DeclarationList *decl_list)
 void Interpreter::Visit(BlockStatement *stmt)
 {
 	auto list = stmt->statements();
-	contextStack.push(new ValueContext(&context()));
 
+	contextPush();
 	for (auto &expr : *list)
 	{
 		expr->Accept(this);
 	}
-
 	contextPop();
 
 //	auto list = stmt->statements();
@@ -564,7 +563,7 @@ void Interpreter::Visit(ForStatement *stmt)
 	// TODO: hande break and continue
 	if (stmt->init())
 	{
-		contextStack.push(new ValueContext(&context()));
+		contextPush();
 		stmt->init()->Accept(this);
 	}
 
@@ -576,7 +575,7 @@ void Interpreter::Visit(ForStatement *stmt)
 		if (condition)
 		{
 			stmt->condition()->Accept(this);
-			if (returnValue()->toBoolean() == false)
+			if (returnValue.toBoolean() == false)
 				break;
 		}
 
@@ -623,7 +622,7 @@ void Interpreter::Visit(WhileStatement *stmt)
 	while (1)
 	{
 		stmt->condition()->Accept(this);
-		if (returnValue()->toBoolean() == false)
+		if (returnValue.toBoolean() == false)
 			break;
 
 		stmt->body()->Accept(this);
@@ -644,7 +643,7 @@ void Interpreter::Visit(DoWhileStatement *stmt)
 		stmt->body()->Accept(this);
 
 		stmt->condition()->Accept(this);
-		if (returnValue()->toBoolean() == false)
+		if (returnValue.toBoolean() == false)
 			break;
 	}
 
@@ -772,16 +771,18 @@ void Interpreter::Visit(FunctionPrototype *proto)
 
 void Interpreter::Visit(FunctionStatement *stmt)
 {
-	stmt->proto()->Accept(this);
-	os() << " {\n";
-	stmt->body()->Accept(this);
-	os() << "}\n";
+	NOT_SUPPORTED;
+
+//	stmt->proto()->Accept(this);
+//	os() << " {\n";
+//	stmt->body()->Accept(this);
+//	os() << "}\n";
 }
 
 void Interpreter::Visit(IfStatement *stmt)
 {
 	stmt->condition()->Accept(this);
-	if (returnValue()->toBoolean())
+	if (returnValue.toBoolean())
 	{
 		stmt->body()->Accept(this);
 	}
@@ -795,7 +796,7 @@ void Interpreter::Visit(IfStatement *stmt)
 void Interpreter::Visit(IfElseStatement *stmt)
 {
 	stmt->condition()->Accept(this);
-	if (returnValue()->toBoolean())
+	if (returnValue.toBoolean())
 	{
 		stmt->body()->Accept(this);
 	}

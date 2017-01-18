@@ -27,13 +27,13 @@ string execute(const string& code)
 
 } // namespace
 
-void TestCommon::testCode(double n, const string& code)
+void TestCommon::testExpression(double n, const string& code)
 {
 	double res = stod(execute(code));
 	EXPECT_NEAR(n, res, ABSOLUTE_ERROR);
 }
 
-void TestCommon::testCode(bool b, const string& code)
+void TestCommon::testExpression(bool b, const string& code)
 {
 	int res = -1;
 	string str = execute(code);
@@ -49,7 +49,7 @@ void TestCommon::testCode(bool b, const string& code)
 		EXPECT_EQ(res, 0);
 }
 
-void TestCommon::testCode(const string& answer, const string& code)
+void TestCommon::testExpression(const string& answer, const string& code)
 {
 	string str = execute(code);
 	EXPECT_EQ(answer, str);
