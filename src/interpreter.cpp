@@ -177,7 +177,7 @@ void Interpreter::Visit(MemberExpression *expr)
 
 	switch (expr->kind()) {
 	case MemberAccessKind::kCall:
-		contextPush();
+		contextPush(new ValueContext(globalContext));
 		expr->member()->Accept(this);
 		val.reference->functionBody->Accept(this);
 		contextPop();
@@ -595,8 +595,8 @@ void Interpreter::Visit(DeclarationList *decl_list)
 void Interpreter::Visit(BlockStatement *stmt)
 {
 	auto list = stmt->statements();
+	assert (contextStack.size() > 0);
 
-	contextPush();
 	for (auto &expr : *list)
 	{
 		expr->Accept(this);
@@ -609,7 +609,6 @@ void Interpreter::Visit(BlockStatement *stmt)
 		if (breakStatement || continueStatement)
 			break;
 	}
-	contextPop();
 
 //	auto list = stmt->statements();
 
@@ -629,7 +628,7 @@ void Interpreter::Visit(ForStatement *stmt)
 	// TODO: hande break and continue
 	if (stmt->init())
 	{
-		contextPush();
+		//contextPush(); // TODO: Maybe turn this back on to support "var i = 0" with local scope
 		stmt->init()->Accept(this);
 	}
 
@@ -663,7 +662,7 @@ void Interpreter::Visit(ForStatement *stmt)
 
 	if (stmt->init())
 	{
-		contextPop();
+		//contextPop();
 	}
 
 //	os() << "for (";

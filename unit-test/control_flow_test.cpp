@@ -5,7 +5,7 @@ TEST(control_flow_test, for_loop)
 	// Ad-hoc.
 	TestCommon::testExpression(10, "var a = 5; for (i = 0; i < 5; i++) a = a + 1; a;");
 	TestCommon::testExpression(5, "var a = 5; for (i = 0; i < 5; i++) var b = a + 1; a;");
-	TestCommon::testExpression(5, "var a = 5; for (i = 0; i < 5; i++) var a = a + 1; a;");
+	TestCommon::testExpression(10, "var a = 5; for (i = 0; i < 5; i++) var a = a + 1; a;");
 }
 
 TEST(control_flow_test, while_do)
