@@ -34,6 +34,7 @@ private:
 	bool returnStatement = false;
 	bool breakStatement = false;
 	bool continueStatement = false;
+	Value* assignArray = nullptr;
 
 	ValueContext& context()
 	{

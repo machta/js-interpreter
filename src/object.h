@@ -35,9 +35,12 @@ public:
 	ValueContext* objectContext;
 	FunctionProtorype* functionProtorype;
 	grok::parser::Expression* functionBody;
+	Value* array;
+	int arrayLength;
 
 	Object(ValueContext* value) : type(ObjectType::Object), objectContext(value) {}
 	Object(FunctionProtorype* value) : type(ObjectType::Function), functionProtorype(value) {}
+	Object(Value* array, int n) : type(ObjectType::Array), array(array), arrayLength(n) {}
 
 	~Object()
 	{
@@ -46,9 +49,12 @@ public:
 		case ObjectType::Object:
 			delete objectContext;
 			return;
-		default:
+		case ObjectType::Function:
 			delete functionProtorype;
 			delete functionBody;
+			return;
+		case ObjectType::Array:
+			delete[] array;
 			return;
 		}
 	}

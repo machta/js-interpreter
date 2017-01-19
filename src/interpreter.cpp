@@ -44,7 +44,19 @@ void Interpreter::Visit(StringLiteral *literal)
 
 void Interpreter::Visit(ArrayLiteral *literal)
 {
-	NOT_SUPPORTED;
+	ProxyArray &arr = literal->exprs();
+
+	int size = arr.size();
+	Value* array = new Value[size];
+
+	for (int i = 0; i < size; i++)
+	{
+		arr[i]->Accept(this);
+		array[i] = returnValue;
+	}
+
+	returnValue = Value(new Object(array, size));
+
 //	ProxyArray &arr = literal->exprs();
 
 //	os() << "[ ";
@@ -183,12 +195,26 @@ void Interpreter::Visit(MemberExpression *expr)
 		contextPop();
 		break;
 	case MemberAccessKind::kDot:
-	case MemberAccessKind::kIndex:
 		contextPush(val.reference->objectContext);
 		expr->member()->Accept(this);
-		//val.reference->
 		contextPop();
 		break;
+	case MemberAccessKind::kIndex: // TODO: Fix property access with the square brackets.
+	{
+		expr->member()->Accept(this);
+		int index = returnValue.toNumber();
+		if (0 <= index && index < val.reference->arrayLength)
+		{
+			returnValue = val.reference->array[index];
+			assignArray = val.reference->array + index;
+			returnVarContext = nullptr;
+		}
+		else
+		{
+			throw std::runtime_error("array index out of bounds");
+		}
+		break;
+	}
 	default:
 		throw std::runtime_error("bad member expression");
 	}
@@ -503,22 +529,29 @@ void Interpreter::Visit(BinaryExpression *expr)
 
 void Interpreter::Visit(AssignExpression *expr)
 {
-	// TODO: Handle declarations without var (for example in for statements)?
-
 	expr->rhs()->Accept(this);
 	Value rhs = returnValue;
 
 	expr->lhs()->Accept(this);
+
 	if (returnVarContext == nullptr)
 	{
-		context().addNamedValue(returnVarName, Value());
-		returnVarContext = &context();
+		if (assignArray != nullptr)
+		{
+			*assignArray = rhs;
+		}
+		else
+		{
+			context().addNamedValue(returnVarName, rhs);
+		}
+	}
+	else
+	{
+		returnVarContext->addNamedValue(returnVarName, rhs);
 	}
 
-	returnVarContext->addNamedValue(returnVarName, rhs);
-
-	returnVarName = "";
 	returnVarContext = nullptr;
+	assignArray = nullptr;
 
 //	expr->lhs()->Accept(this);
 //	os() << " = ";

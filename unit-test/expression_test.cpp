@@ -4,13 +4,11 @@
 
 TEST(expression_test, assignment)
 {
-	// Ad-hoc.
 	TestCommon::testExpression(true, "var x = 6, y = 3; (x + y) == 9 && x - y == 3;");
 }
 
 TEST(expression_test, binary_op)
 {
-	// Ad-hoc.
 	TestCommon::testExpression(12, "var a = 5*1/1; a = a + 1; a = a*2; a;");
 	TestCommon::testExpression(1, "var a = 13; a = a % 2; a;");
 	TestCommon::testExpression(-1./3, "var a = 1/3; a = -a; a*1;");
@@ -30,7 +28,6 @@ TEST(expression_test, binary_op)
 
 TEST(expression_test, unary_op)
 {
-	// Ad-hoc.
 	TestCommon::testExpression(12, "var a = 5; ++a*2;");
 	TestCommon::testExpression(10, "var a = 5; a++*2;");
 	TestCommon::testExpression(6, "var a = 5; a++*2; a;");
@@ -83,7 +80,6 @@ TEST(expression_test, comparison)
 
 TEST(expression_test, logical_op)
 {
-	// Ad-hoc.
 	TestCommon::testExpression(true, "var a = false; a = a || true; a;");
 	//TestCommon::testExpression(true, "var a = false; a = !a; a;"); // Cannot be parsed for some reason.
 

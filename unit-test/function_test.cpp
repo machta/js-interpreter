@@ -2,14 +2,12 @@
 
 TEST(function_test, first_test)
 {	
-	// Ad-hoc.
 	TestCommon::testExpression(16, "var fun = function(a){ return a*a; }; fun(fun(2));");
 	TestCommon::testExpression(5, "var fun = function(){ return 5; return 10; }; fun();");
 }
 
 TEST(function_test, scope)
 {
-	// Ad-hoc.
 	TestCommon::testExpression(2, "var a = 5; var fun = function(a){ return a; }; fun(2);");
 	TestCommon::testExpression(5, "var a = 5; var fun = function(){ return a; }; fun(2);");
 	TestCommon::testExpression(5, "var a = 5; var fun = function(a){ return fun2(); }; var fun2 = function() { return a; }; fun(2);");
