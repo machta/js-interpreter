@@ -10,7 +10,7 @@ namespace
 
 const double ABSOLUTE_ERROR = 0.000001;
 
-string execute(const string& code)
+Value execute(const string& code)
 {
 	Parser p;
 	ValueContext context;
@@ -21,35 +21,32 @@ string execute(const string& code)
 	e->Accept(&interpreter);
 
 	delete e;
-	return interpreter.lastStatementValue().toString();
+	return interpreter.lastStatementValue();
 }
 
 } // namespace
 
 void TestCommon::testExpression(double n, const string& code)
 {
-	double res = stod(execute(code));
-	EXPECT_NEAR(n, res, ABSOLUTE_ERROR);
+	Value res = execute(code);
+	EXPECT_DOUBLE_EQ(n, res.toNumber());
+	//EXPECT_NEAR(n, res.toNumber(), ABSOLUTE_ERROR);
+}
+
+void TestCommon::testExpression(int n, const string& code)
+{
+	Value res = execute(code);
+	EXPECT_DOUBLE_EQ(static_cast<double>(n), res.toNumber());
 }
 
 void TestCommon::testExpression(bool b, const string& code)
 {
-	int res = -1;
-	string str = execute(code);
-
-	if (str == "false")
-		res = 0;
-	else if (str == "true")
-		res = 1;
-
-	if (b)
-		EXPECT_EQ(res, 1);
-	else
-		EXPECT_EQ(res, 0);
+	Value res = execute(code);
+	EXPECT_EQ(b, res.toBoolean());
 }
 
 void TestCommon::testExpression(const string& answer, const string& code)
 {
-	string str = execute(code);
-	EXPECT_EQ(answer, str);
+	Value res = execute(code);
+	EXPECT_EQ(answer, res.toString());
 }

@@ -91,7 +91,7 @@ public:
 			}
 			catch (...)
 			{
-				d = 0; // TODO: Fix this according to reference -- use undefined or something like that.
+				d = 0; // TODO: Fix this according to reference -- use NaN.
 			}
 			return d;
 		default:
