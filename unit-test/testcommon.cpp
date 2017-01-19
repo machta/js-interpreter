@@ -8,7 +8,7 @@ using namespace std;
 namespace
 {
 
-const double ABSOLUTE_ERROR = 0.000001;
+//const double ABSOLUTE_ERROR = 0.000001;
 
 Value execute(const string& code)
 {

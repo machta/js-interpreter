@@ -57,65 +57,11 @@ public:
 	ValueType valueType() const { return type; }
 
 	//toReference(){}
-	bool toBoolean()
-	{
-		switch (type)
-		{
-		case ValueType::Reference:
-			return false; // TODO: Check this.
-		case ValueType::Boolean:
-			return booleanValue;
-		case ValueType::Number:
-			return numberValue == 1;
-		case ValueType::String:
-			return strlen(stringValue) > 0;
-		default:
-			assert(0); return false;
-		}
-	}
-	double toNumber()
-	{
-		switch (type)
-		{
-		case ValueType::Reference:
-			return -1; // TODO: Check this.
-		case ValueType::Boolean:
-			return booleanValue ? 1 : 0;
-		case ValueType::Number:
-			return numberValue;
-		case ValueType::String:
-			double d;
-			try
-			{
-				d = std::stod(stringValue);
-			}
-			catch (...)
-			{
-				d = 0; // TODO: Fix this according to reference -- use NaN.
-			}
-			return d;
-		default:
-			assert(0); return 0;
-		}
-	}
-	std::string toString()
-	{
-		switch (type)
-		{
-		case ValueType::Undefined:
-			return "undefined";
-		case ValueType::Reference:
-			return ""; // TODO: Check this.
-		case ValueType::Boolean:
-			return booleanValue ? "true" : "false";
-		case ValueType::Number:
-			return std::to_string(numberValue);
-		case ValueType::String:
-			return stringValue;
-		default:
-			assert(0); return "";
-		}
-	}
+	bool toBoolean();
+	double toNumber();
+	std::string toString();
+
+	Value builtInProperty(const std::string& name);
 
 private:
 	void copyString(const char* value, int length)

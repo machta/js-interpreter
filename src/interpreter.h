@@ -18,7 +18,7 @@ public:
 
 	Value lastStatementValue()
 	{
-		return returnValue;
+		return returnValue();
 	}
 public:
 #define DECLARE_VISITOR_METHOD(type) void Visit(grok::parser::type *) override;
@@ -28,31 +28,47 @@ AST_NODE_LIST(DECLARE_VISITOR_METHOD)
 private:
 	ValueContext* globalContext;
 	std::stack<ValueContext*> contextStack;
-	Value returnValue;
+	Value tmpValue;
 	std::string returnVarName;
-	ValueContext* returnVarContext = nullptr;
+	//ValueContext* returnVarContext = nullptr;
 	bool returnStatement = false;
 	bool breakStatement = false;
 	bool continueStatement = false;
 	Value* assignArray = nullptr;
+	ValueContext* assignMemberContext = nullptr;
 
 	ValueContext& context()
 	{
 		assert(contextStack.size() > 0);
 		return *contextStack.top();
 	}
-	void contextPush()
-	{
-		contextPush(new ValueContext(&context()));
-	}
+//	void contextPush()
+//	{
+//		contextPush(new ValueContext(&context()));
+//	}
 	void contextPush(ValueContext* context)
 	{
 		contextStack.push(context);
 	}
-	void contextPop()
+	void contextPop(bool deleteElement)
 	{
-		delete &context();
+		assert(contextStack.size() > 0);
+		if (deleteElement)
+			delete &context();
 		contextStack.pop();
+	}
+	Value returnValue()
+	{
+		if (returnVarName.size() > 0)
+		{
+			return context().namedValue(returnVarName).second;
+		}
+		return temporaryValue();
+	}
+	Value& temporaryValue()
+	{
+		returnVarName.clear();
+		return tmpValue;
 	}
 };
 

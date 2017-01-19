@@ -61,6 +61,23 @@ public:
 
 	ObjectType objectType() const { return type; }
 
+//	bool buildInMethod(ValueContext* parameters)
+//	{
+//		switch (type)
+//		{
+//		case ObjectType::Object:
+//			delete objectContext;
+//			return;
+//		case ObjectType::Function:
+//			delete functionProtorype;
+//			delete functionBody;
+//			return;
+//		case ObjectType::Array:
+//			delete[] array;
+//			return;
+//		}
+//	}
+
 private:
 };
 

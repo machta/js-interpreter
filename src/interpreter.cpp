@@ -32,13 +32,13 @@ void Interpreter::Visit(ThisHolder *holder)
 
 void Interpreter::Visit(IntegralLiteral *literal)
 {
-	returnValue = Value(literal->value());
+	temporaryValue() = Value(literal->value());
 //	os() << literal->value();
 }
 
 void Interpreter::Visit(StringLiteral *literal)
 {
-	returnValue = Value(literal->string().c_str(), literal->string().length());
+	temporaryValue() = Value(literal->string().c_str(), literal->string().length());
 //	os() << literal->string();
 }
 
@@ -52,10 +52,10 @@ void Interpreter::Visit(ArrayLiteral *literal)
 	for (int i = 0; i < size; i++)
 	{
 		arr[i]->Accept(this);
-		array[i] = returnValue;
+		array[i] = returnValue();
 	}
 
-	returnValue = Value(new Object(array, size));
+	temporaryValue() = Value(new Object(array, size));
 
 //	ProxyArray &arr = literal->exprs();
 
@@ -76,10 +76,10 @@ void Interpreter::Visit(ObjectLiteral *literal)
 	for (auto& p : obj)
 	{
 		p.second->Accept(this);
-		objectContext->addNamedValue(p.first, returnValue);
+		objectContext->addNamedValue(p.first, returnValue());
 	}
 
-	returnValue = Value(new Object(objectContext));
+	temporaryValue() = Value(new Object(objectContext));
 
 //	ProxyObject &obj = literal->proxy();
 
@@ -94,17 +94,20 @@ void Interpreter::Visit(ObjectLiteral *literal)
 
 void Interpreter::Visit(Identifier *id)
 {
-	auto var = context().namedValue(id->GetName()); // TODO: Handle undefined names.
-	returnValue = var.second;
+	//auto var = context().namedValue(id->GetName()); // TODO: Handle undefined names.
+#ifndef NDEBUG
+	temporaryValue() = Value();
+#endif
+	//temporaryValue() = var.second;
 	returnVarName = id->GetName();
-	returnVarContext = var.first;
+	//returnVarContext = var.first;
 
 //	os() << id->GetName();
 }
 
 void Interpreter::Visit(BooleanLiteral *literal)
 {
-	returnValue = Value(literal->pred());
+	temporaryValue() = Value(literal->pred());
 //	os() << std::boolalpha << literal->pred();
 }
 
@@ -118,7 +121,7 @@ void Interpreter::Visit(ArgumentList *args)
 {
 	auto list = args->args();
 
-	FunctionProtorype* fun = returnValue.reference->functionProtorype;
+	FunctionProtorype* fun = returnValue().reference->functionProtorype;
 
 	if (!list)
 	{
@@ -134,9 +137,9 @@ void Interpreter::Visit(ArgumentList *args)
 		if (it != list->end())
 			(*it)->Accept(this);
 		else
-			returnValue = Value();
+			temporaryValue() = Value();
 
-		context().addNamedValue(fun->arguments[i], returnValue);
+		context().addNamedValue(fun->arguments[i], returnValue());
 
 		it++;
 	}
@@ -160,7 +163,7 @@ void Interpreter::Visit(ArgumentList *args)
 }
 
 void Interpreter::Visit(CallExpression *expr)
-{
+{ // TODO: Find out why this is not needed.
 	NOT_SUPPORTED;
 //	expr->expr()->Accept(this);
 
@@ -185,29 +188,45 @@ void Interpreter::Visit(CallExpression *expr)
 void Interpreter::Visit(MemberExpression *expr)
 {
 	expr->expr()->Accept(this);
-	Value val = returnValue;
+	Value val = returnValue();
 
-	switch (expr->kind()) {
+	switch (expr->kind())
+	{
 	case MemberAccessKind::kCall:
 		contextPush(new ValueContext(globalContext));
 		expr->member()->Accept(this);
-		val.reference->functionBody->Accept(this);
-		contextPop();
+		//if (val.reference->buildInMethod(&context()))
+			val.reference->functionBody->Accept(this);
+		contextPop(true);
 		break;
 	case MemberAccessKind::kDot:
-		contextPush(val.reference->objectContext);
+	{
 		expr->member()->Accept(this);
-		contextPop();
+
+		Value res = val.builtInProperty(returnVarName);
+		if (res.valueType() != ValueType::Undefined) // TODO: Possibly change undefined to null.
+		{
+			temporaryValue() = res;
+		}
+		else
+		{
+			auto var = val.reference->objectContext->namedValue(returnVarName);
+			temporaryValue() = var.second;
+			assignMemberContext = var.first;
+		}
+		//contextPush();
+		//contextPop(false);
 		break;
+	}
 	case MemberAccessKind::kIndex: // TODO: Fix property access with the square brackets.
 	{
 		expr->member()->Accept(this);
-		int index = returnValue.toNumber();
+		int index = returnValue().toNumber();
 		if (0 <= index && index < val.reference->arrayLength)
 		{
-			returnValue = val.reference->array[index];
+			temporaryValue() = val.reference->array[index];
 			assignArray = val.reference->array + index;
-			returnVarContext = nullptr;
+			//returnVarContext = nullptr;
 		}
 		else
 		{
@@ -249,24 +268,26 @@ void Interpreter::Visit(NewExpression *expr)
 void Interpreter::Visit(PrefixExpression *expr)
 {
 	expr->expr()->Accept(this);
-	string varName = returnVarName;
+	string name = returnVarName;
+	assert(name.length() > 0);
+	auto var = context().namedValue(returnVarName);
 	returnVarName = "";
-	ValueContext* varContext = returnVarContext;
-	assert(varContext != nullptr);
+	assert(var.first != nullptr);
+	double d = var.second.toNumber();
 
 	switch (expr->op()) {
 	case PrefixOperation::kIncrement:
 	{
-		double d = returnValue.toNumber() + 1;
-		varContext->addNamedValue(varName, Value(d));
-		returnValue = Value(d);
+		d += 1;
+		var.first->addNamedValue(name, Value(d));
+		temporaryValue() = Value(d);
 		return;
 	}
 	case PrefixOperation::kDecrement:
 	{
-		double d = returnValue.toNumber() - 1;
-		varContext->addNamedValue(varName, Value(d));
-		returnValue = Value(d);
+		d -= 1;
+		var.first->addNamedValue(name, Value(d));
+		temporaryValue() = Value(d);
 		return;
 	}
 //	case PrefixOperation::kTypeOf:
@@ -277,16 +298,16 @@ void Interpreter::Visit(PrefixExpression *expr)
 //		break;
 	case PrefixOperation::kBitNot:
 	{
-		int i = ~static_cast<int>(returnValue.toNumber());
-		varContext->addNamedValue(varName, Value(i));
-		returnValue = Value(i);
+		int i = ~static_cast<int>(d);
+		var.first->addNamedValue(name, Value(i));
+		temporaryValue() = Value(i);
 		return;
 	}
 	case PrefixOperation::kNot:
 	{
-		double b = ~returnValue.toBoolean();
-		varContext->addNamedValue(varName, Value(b));
-		returnValue = Value(b);
+		double b = ~var.second.toBoolean();
+		var.first->addNamedValue(name, Value(b));
+		temporaryValue() = Value(b);
 		return;
 	}
 //	case PrefixOperation::kVoid:
@@ -328,19 +349,20 @@ void Interpreter::Visit(PostfixExpression *expr)
 {
 	expr->expr()->Accept(this);
 	string name = returnVarName;
+	assert(name.length() > 0);
+	auto var = context().namedValue(returnVarName);
 	returnVarName = "";
-	ValueContext* varContext = returnVarContext;
-	assert(varContext != nullptr);
-	double d = returnValue.toNumber();
+	assert(var.first != nullptr);
+	double d = var.second.toNumber();
 
 	switch (expr->op()) {
 	case PostfixOperation::kIncrement:
-		varContext->addNamedValue(name, Value(d + 1));
-		returnValue = Value(d);
+		var.first->addNamedValue(name, Value(d + 1));
+		temporaryValue() = Value(d);
 		return;
 	case PostfixOperation::kDecrement:
-		varContext->addNamedValue(name, Value(d - 1));
-		returnValue = Value(d);
+		var.first->addNamedValue(name, Value(d - 1));
+		temporaryValue() = Value(d);
 		return;
 	}
 
@@ -362,11 +384,11 @@ void Interpreter::Visit(PostfixExpression *expr)
 void Interpreter::Visit(BinaryExpression *expr)
 {
 	expr->lhs()->Accept(this);
-	Value lhs = returnValue;
+	Value lhs = returnValue();
 	ValueType lhsType = lhs.valueType();
 
 	expr->rhs()->Accept(this);
-	Value rhs = returnValue;
+	Value rhs = returnValue();
 	ValueType rhsType = rhs.valueType();
 
 	if (lhsType == ValueType::String || rhsType == ValueType::String)
@@ -374,7 +396,7 @@ void Interpreter::Visit(BinaryExpression *expr)
 		if (expr->op() == BinaryOperation::kAddition)
 		{
 			string tmp = lhs.toString() + rhs.toString();
-			returnValue = Value(tmp.c_str(), tmp.length());
+			temporaryValue() = Value(tmp.c_str(), tmp.length());
 		}
 		else
 		{
@@ -395,35 +417,35 @@ void Interpreter::Visit(BinaryExpression *expr)
 
 	switch (expr->op()) {
 	case BinaryOperation::kAddition:
-		returnValue = Value(l + r); return;
+		temporaryValue() = Value(l + r); return;
 	case BinaryOperation::kMultiplication:
-		returnValue = Value(l * r); return;
+		temporaryValue() = Value(l * r); return;
 	case BinaryOperation::kSubtraction:
-		returnValue = Value(l - r); return;
+		temporaryValue() = Value(l - r); return;
 	case BinaryOperation::kDivision:
-		returnValue = Value(l / r); return;
+		temporaryValue() = Value(l / r); return;
 	case BinaryOperation::kMod:
-		returnValue = Value(fmod(l, r)); return;
+		temporaryValue() = Value(fmod(l, r)); return;
 	case BinaryOperation::kShiftRight:
-		returnValue = Value(li >> ri); return;
+		temporaryValue() = Value(li >> ri); return;
 	case BinaryOperation::kShiftLeft:
-		returnValue = Value(li << ri); return;
+		temporaryValue() = Value(li << ri); return;
 	case BinaryOperation::kLessThan:
-		returnValue = Value(l < r); return;
+		temporaryValue() = Value(l < r); return;
 	case BinaryOperation::kGreaterThan:
-		returnValue = Value(l > r); return;
+		temporaryValue() = Value(l > r); return;
 	case BinaryOperation::kLessThanEqual:
-		returnValue = Value(l <= r); return;
+		temporaryValue() = Value(l <= r); return;
 	case BinaryOperation::kGreaterThanEqual:
-		returnValue = Value(l >= r); return;
+		temporaryValue() = Value(l >= r); return;
 	case BinaryOperation::kEqual:
-		returnValue = Value(l == r); return;
+		temporaryValue() = Value(l == r); return;
 	case BinaryOperation::kNotEqual:
-		returnValue = Value(l != r); return;
+		temporaryValue() = Value(l != r); return;
 	case BinaryOperation::kStrictEqual:
-		returnValue = Value(l == r && lhs.valueType() == rhs.valueType()); return;
+		temporaryValue() = Value(l == r && lhs.valueType() == rhs.valueType()); return;
 	case BinaryOperation::kStrictNotEqual:
-		returnValue = Value(l != r || lhs.valueType() != rhs.valueType()); return;
+		temporaryValue() = Value(l != r || lhs.valueType() != rhs.valueType()); return;
 //	case BinaryOperation::kAnd:
 //		os() << "&&";
 //		break;
@@ -431,11 +453,11 @@ void Interpreter::Visit(BinaryExpression *expr)
 //		os() << "||";
 //		break;
 	case BinaryOperation::kBitAnd:
-		returnValue = Value(li & ri); return;
+		temporaryValue() = Value(li & ri); return;
 	case BinaryOperation::kBitOr:
-		returnValue = Value(li | ri); return;
+		temporaryValue() = Value(li | ri); return;
 	case BinaryOperation::kBitXor:
-		returnValue = Value(li ^ ri); return;
+		temporaryValue() = Value(li ^ ri); return;
 //	case BinaryOperation::kInstanceOf:
 //		os() << "instanceof";
 //		break;
@@ -446,9 +468,9 @@ void Interpreter::Visit(BinaryExpression *expr)
 
 	switch (expr->op()) {
 	case BinaryOperation::kAnd:
-		returnValue = Value(lb && rb); return;
+		temporaryValue() = Value(lb && rb); return;
 	case BinaryOperation::kOr:
-		returnValue = Value(lb || rb); return;
+		temporaryValue() = Value(lb || rb); return;
 	}
 
 #pragma GCC diagnostic pop
@@ -530,11 +552,17 @@ void Interpreter::Visit(BinaryExpression *expr)
 void Interpreter::Visit(AssignExpression *expr)
 {
 	expr->rhs()->Accept(this);
-	Value rhs = returnValue;
+	Value rhs = returnValue();
+	if (assignArray)
+		assignArray = nullptr;
 
 	expr->lhs()->Accept(this);
 
-	if (returnVarContext == nullptr)
+	if (assignMemberContext)
+	{
+		assignMemberContext->addNamedValue(returnVarName, rhs);
+	}
+	else
 	{
 		if (assignArray != nullptr)
 		{
@@ -542,16 +570,22 @@ void Interpreter::Visit(AssignExpression *expr)
 		}
 		else
 		{
-			context().addNamedValue(returnVarName, rhs);
+			auto var = context().namedValue(returnVarName);
+
+			if (var.first == nullptr)
+			{
+				context().addNamedValue(returnVarName, rhs);
+			}
+			else
+			{
+				var.first->addNamedValue(returnVarName, rhs);
+			}
 		}
 	}
-	else
-	{
-		returnVarContext->addNamedValue(returnVarName, rhs);
-	}
 
-	returnVarContext = nullptr;
+	//returnVarContext = nullptr;
 	assignArray = nullptr;
+	assignMemberContext = nullptr;
 
 //	expr->lhs()->Accept(this);
 //	os() << " = ";
@@ -561,7 +595,7 @@ void Interpreter::Visit(AssignExpression *expr)
 void Interpreter::Visit(TernaryExpression *expr)
 {
 	expr->first()->Accept(this);
-	if (returnValue.toBoolean())
+	if (returnValue().toBoolean())
 	{
 		expr->second()->Accept(this);
 	}
@@ -599,7 +633,10 @@ void Interpreter::Visit(Declaration *decl)
 	if (decl->expr())
 	{
 		decl->expr()->Accept(this);
-		context().addNamedValue(decl->name(), returnValue);
+		context().addNamedValue(decl->name(), returnValue());
+
+		if (assignArray)
+			assignArray = nullptr;
 	}
 	else
 	{
@@ -673,7 +710,7 @@ void Interpreter::Visit(ForStatement *stmt)
 		if (condition)
 		{
 			stmt->condition()->Accept(this);
-			if (returnValue.toBoolean() == false)
+			if (returnValue().toBoolean() == false)
 				break;
 		}
 
@@ -728,7 +765,7 @@ void Interpreter::Visit(WhileStatement *stmt)
 	while (1)
 	{
 		stmt->condition()->Accept(this);
-		if (returnValue.toBoolean() == false)
+		if (returnValue().toBoolean() == false)
 			break;
 
 		stmt->body()->Accept(this);
@@ -757,7 +794,7 @@ void Interpreter::Visit(DoWhileStatement *stmt)
 		stmt->body()->Accept(this);
 
 		stmt->condition()->Accept(this);
-		if (returnValue.toBoolean() == false)
+		if (returnValue().toBoolean() == false)
 			break;
 	}
 
@@ -873,7 +910,7 @@ void Interpreter::Visit(FunctionPrototype *proto)
 		fun->arguments.push_back(arg);
 	}
 
-	returnValue = Value(new Object(fun));
+	temporaryValue() = Value(new Object(fun));
 
 //	os() << "function " << proto->GetName() << "(";
 
@@ -893,7 +930,7 @@ void Interpreter::Visit(FunctionPrototype *proto)
 void Interpreter::Visit(FunctionStatement *stmt)
 {
 	stmt->proto()->Accept(this);
-	returnValue.reference->functionBody = stmt->body();
+	returnValue().reference->functionBody = stmt->body();
 
 //	stmt->proto()->Accept(this);
 //	os() << " {\n";
@@ -904,7 +941,7 @@ void Interpreter::Visit(FunctionStatement *stmt)
 void Interpreter::Visit(IfStatement *stmt)
 {
 	stmt->condition()->Accept(this);
-	if (returnValue.toBoolean())
+	if (returnValue().toBoolean())
 	{
 		stmt->body()->Accept(this);
 	}
@@ -918,7 +955,7 @@ void Interpreter::Visit(IfStatement *stmt)
 void Interpreter::Visit(IfElseStatement *stmt)
 {
 	stmt->condition()->Accept(this);
-	if (returnValue.toBoolean())
+	if (returnValue().toBoolean())
 	{
 		stmt->body()->Accept(this);
 	}
@@ -939,6 +976,9 @@ void Interpreter::Visit(ReturnStatement *stmt)
 {
 	if (stmt->expr())
 		stmt->expr()->Accept(this);
+
+	tmpValue = returnValue();
+	returnVarName.clear();
 
 	returnStatement = true;
 
