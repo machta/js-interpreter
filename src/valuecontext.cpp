@@ -1,5 +1,7 @@
 #include "valuecontext.h"
 
+#include <limits>
+
 using namespace std;
 
 pair<ValueContext*, Value> ValueContext::namedValue(const string& name)
@@ -52,13 +54,13 @@ double Value::toNumber()
 	case ValueType::String:
 		double d;
 		try
-	{
-		d = std::stod(stringValue);
-	}
+		{
+			d = std::stod(stringValue);
+		}
 		catch (...)
-	{
-		d = 0; // TODO: Fix this according to reference -- use NaN.
-	}
+		{
+			d = numeric_limits<double>::quiet_NaN();
+		}
 		return d;
 	default:
 		assert(0); return 0;

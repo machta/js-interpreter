@@ -401,25 +401,45 @@ void Interpreter::Visit(BinaryExpression *expr)
 		{
 			string tmp = lhs.toString() + rhs.toString();
 			temporaryValue() = Value(tmp.c_str(), tmp.length());
+			return;
 		}
-		else
-		{
-			throw runtime_error("invalid binary operation");
-		}
-
-		return;
 	}
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wswitch"
 
-	//double l = dynamic_cast<NumberValue*>(lhs)->value;
-	//double r = dynamic_cast<NumberValue*>(rhs)->value;
+	if (lhsType == ValueType::String && rhsType == ValueType::String)
+	{
+		string l = lhs.toString();
+		string r = rhs.toString();
+
+		switch (expr->op())
+		{
+		case BinaryOperation::kLessThan:
+			temporaryValue() = Value(l < r); return;
+		case BinaryOperation::kGreaterThan:
+			temporaryValue() = Value(l > r); return;
+		case BinaryOperation::kLessThanEqual:
+			temporaryValue() = Value(l <= r); return;
+		case BinaryOperation::kGreaterThanEqual:
+			temporaryValue() = Value(l >= r); return;
+		case BinaryOperation::kEqual:
+			temporaryValue() = Value(l == r); return;
+		case BinaryOperation::kNotEqual:
+			temporaryValue() = Value(l != r); return;
+//		case BinaryOperation::kStrictEqual:
+//			temporaryValue() = Value(l == r && lhs.valueType() == rhs.valueType()); return;
+//		case BinaryOperation::kStrictNotEqual:
+//			temporaryValue() = Value(l != r || lhs.valueType() != rhs.valueType()); return;
+		}
+	}
+
 	double l = lhs.toNumber();
 	double r = rhs.toNumber();
 	int li = l, ri = r;
 
-	switch (expr->op()) {
+	switch (expr->op())
+	{
 	case BinaryOperation::kAddition:
 		temporaryValue() = Value(l + r); return;
 	case BinaryOperation::kMultiplication:
@@ -432,6 +452,8 @@ void Interpreter::Visit(BinaryExpression *expr)
 		temporaryValue() = Value(fmod(l, r)); return;
 	case BinaryOperation::kShiftRight:
 		temporaryValue() = Value(li >> ri); return;
+	case BinaryOperation::kShiftZeroRight:
+		temporaryValue() = Value(static_cast<int>(static_cast<unsigned int>(li) >> ri)); return;
 	case BinaryOperation::kShiftLeft:
 		temporaryValue() = Value(li << ri); return;
 	case BinaryOperation::kLessThan:
@@ -470,7 +492,8 @@ void Interpreter::Visit(BinaryExpression *expr)
 	bool lb = lhs.toBoolean();
 	bool rb = rhs.toBoolean();
 
-	switch (expr->op()) {
+	switch (expr->op())
+	{
 	case BinaryOperation::kAnd:
 		temporaryValue() = Value(lb && rb); return;
 	case BinaryOperation::kOr:
@@ -553,6 +576,7 @@ void Interpreter::Visit(BinaryExpression *expr)
 //	expr->rhs()->Accept(this);
 }
 
+// TODO: Implement += and similar assignments.
 void Interpreter::Visit(AssignExpression *expr)
 {
 	expr->rhs()->Accept(this);

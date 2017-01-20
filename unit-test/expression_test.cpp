@@ -46,16 +46,16 @@ TEST(expression_test, comparison)
 	// Reference.
 	TEST_EXPRESSION(false, "var x = 5; x == 8;");
 	TEST_EXPRESSION(true, "var x = 5; x == 5;");
-	//TEST_EXPRESSION(true, "var x = 5; x == '5';");
-	//TEST_EXPRESSION(true, "var x = 5; x == \"5\";");
+	TEST_EXPRESSION(true, "var x = 5; x == '5';");
+	TEST_EXPRESSION(true, "var x = 5; x == \"5\";");
 
 	TEST_EXPRESSION(true, "var x = 5; x === 5;");
-	//TEST_EXPRESSION(false, "var x = 5; x === '5';");
+	TEST_EXPRESSION(false, "var x = 5; x === '5';");
 
 	TEST_EXPRESSION(true, "var x = 5; x != 8;");
 
 	TEST_EXPRESSION(false, "var x = 5; x !== 5;");
-	//TEST_EXPRESSION(true, "var x = 5; x !== '5';");
+	TEST_EXPRESSION(true, "var x = 5; x !== '5';");
 	TEST_EXPRESSION(true, "var x = 5; x !== 8;");
 
 	TEST_EXPRESSION(false, "var x = 5; x > 8;");
@@ -67,15 +67,15 @@ TEST(expression_test, comparison)
 	TEST_EXPRESSION(true, "var x = 5; x <= 8;");
 
 	TEST_EXPRESSION(true, "2 < 12;");
-	/*TEST_EXPRESSION(true, "2 < '12';");
+	TEST_EXPRESSION(true, "2 < '12';");
 	TEST_EXPRESSION(false, "2 < 'John';");
 	TEST_EXPRESSION(false, "2 > 'John';");
-	TEST_EXPRESSION(false, "2 == 'John'");
+	TEST_EXPRESSION(false, "2 == 'John';");
 	TEST_EXPRESSION(false, "'2' < '12';");
 	TEST_EXPRESSION(true, "'2' > '12';");
 	TEST_EXPRESSION(false, "'2' == '12';");
 	TEST_EXPRESSION(false, "'2' == '1';");
-	TEST_EXPRESSION(true, "'1' == '1';");*/
+	TEST_EXPRESSION(true, "'1' == '1';");
 }
 
 TEST(expression_test, logical_op)
@@ -104,11 +104,15 @@ TEST(expression_test, bitwise_op)
 
 	TEST_EXPRESSION(4, "5 ^ 1;");
 
-	//TEST_EXPRESSION(10, "5 << 1;");
+	TEST_EXPRESSION(10, "5 << 1;");
 
-	//TEST_EXPRESSION(2, "5 >> 1;");
+	TEST_EXPRESSION(2, "5 >> 1;");
+	TEST_EXPRESSION(-3, "(-5) >> 1;");
+	//TEST_EXPRESSION(-3, "-5 >> 1;"); // Parses with bad precedence.
 
-	//TEST_EXPRESSION(2, "5 >>> 1;"); // Not supported.
+	TEST_EXPRESSION(2, "5 >>> 1;");
+	TEST_EXPRESSION(2147483645, "(-5) >>> 1;");
+	//TEST_EXPRESSION(2147483645, "-5 >>> 1;"); // Parses with bad precedence.
 }
 
 TEST(expression_test, precedence)
