@@ -16,6 +16,7 @@ Value execute(const string& code)
 	ValueContext context;
 
 	grok::parser::Expression* e = p.makeAST(code);
+	assert(e != nullptr);
 
 	Interpreter interpreter(&context);
 	e->Accept(&interpreter);

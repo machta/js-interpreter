@@ -272,25 +272,22 @@ void Interpreter::Visit(NewExpression *expr)
 void Interpreter::Visit(PrefixExpression *expr)
 {
 	expr->expr()->Accept(this);
-	string name = returnVarName;
-	assert(name.length() > 0);
-	auto var = context().namedValue(returnVarName);
-	returnVarName = "";
-	assert(var.first != nullptr);
-	double d = var.second.toNumber();
 
-	switch (expr->op()) {
+	switch (expr->op())
+	{
 	case PrefixOperation::kIncrement:
 	{
-		d += 1;
-		var.first->addNamedValue(name, Value(d));
+		auto var = context().namedValue(returnVarName);
+		double d = var.second.toNumber() + 1;
+		var.first->addNamedValue(returnVarName, Value(d));
 		temporaryValue() = Value(d);
 		return;
 	}
 	case PrefixOperation::kDecrement:
 	{
-		d -= 1;
-		var.first->addNamedValue(name, Value(d));
+		auto var = context().namedValue(returnVarName);
+		double d = var.second.toNumber() - 1;
+		var.first->addNamedValue(returnVarName, Value(d));
 		temporaryValue() = Value(d);
 		return;
 	}
@@ -302,15 +299,13 @@ void Interpreter::Visit(PrefixExpression *expr)
 //		break;
 	case PrefixOperation::kBitNot:
 	{
-		int i = ~static_cast<int>(d);
-		var.first->addNamedValue(name, Value(i));
+		int i = ~static_cast<int>(returnValue().toNumber());
 		temporaryValue() = Value(i);
 		return;
 	}
 	case PrefixOperation::kNot:
 	{
-		double b = ~var.second.toBoolean();
-		var.first->addNamedValue(name, Value(b));
+		bool b = !returnValue().toBoolean();
 		temporaryValue() = Value(b);
 		return;
 	}
@@ -359,7 +354,8 @@ void Interpreter::Visit(PostfixExpression *expr)
 	assert(var.first != nullptr);
 	double d = var.second.toNumber();
 
-	switch (expr->op()) {
+	switch (expr->op())
+	{
 	case PostfixOperation::kIncrement:
 		var.first->addNamedValue(name, Value(d + 1));
 		temporaryValue() = Value(d);

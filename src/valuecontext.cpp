@@ -55,7 +55,7 @@ double Value::toNumber()
 		double d;
 		try
 		{
-			d = std::stod(stringValue);
+			d = stod(stringValue);
 		}
 		catch (...)
 		{
@@ -78,7 +78,7 @@ string Value::toString()
 	case ValueType::Boolean:
 		return booleanValue ? "true" : "false";
 	case ValueType::Number:
-		return std::to_string(numberValue);
+		return to_string(numberValue);
 	case ValueType::String:
 		return stringValue;
 	default:
@@ -95,4 +95,34 @@ Value Value::builtInProperty(const string& name)
 	}
 
 	return Value();
+}
+
+void Value::copyString(const char* value, int length)
+{
+	delete[] stringValue;
+	stringValue = new char[length + 1];
+	memcpy(stringValue, value, length);
+	stringValue[length] = 0;
+}
+
+void Value::copy(const Value& v)
+{
+	type = v.valueType();
+	switch (type)
+	{
+	case ValueType::Undefined:
+		break;
+	case ValueType::Reference:
+		reference = v.reference;
+		break;
+	case ValueType::Boolean:
+		booleanValue = v.booleanValue;
+		break;
+	case ValueType::Number:
+		numberValue = v.numberValue;
+		break;
+	case ValueType::String:
+		copyString(v.stringValue, strlen(v.stringValue));
+		break;
+	}
 }

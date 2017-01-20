@@ -81,14 +81,14 @@ TEST(expression_test, comparison)
 TEST(expression_test, logical_op)
 {
 	TEST_EXPRESSION(true, "var a = false; a = a || true; a;");
-	//TEST_EXPRESSION(true, "var a = false; a = !a; a;"); // Cannot be parsed for some reason.
+	TEST_EXPRESSION(true, "var a = false; a = !a; a;");
 
 	// Reference.
 	TEST_EXPRESSION(true, "var x = 6, y = 3; (x < 10 && y > 1);");
 
 	TEST_EXPRESSION(false, "var x = 6, y = 3; (x == 5 || y == 5);");
 
-	//TEST_EXPRESSION(true, "var x = 6, y = 3; !(x == y);"); // Parse error.
+	TEST_EXPRESSION(true, "var x = 6, y = 3; !(x == y);");
 }
 
 TEST(expression_test, bitwise_op)
@@ -99,7 +99,8 @@ TEST(expression_test, bitwise_op)
 	TEST_EXPRESSION(5, "5 | 1;");
 	TEST_EXPRESSION(5, "4 | 1;");
 
-	//TEST_EXPRESSION(-6, "~5;");
+	TEST_EXPRESSION(-6, "~5;");
+	TEST_EXPRESSION(5, "~(-6);");
 	//TEST_EXPRESSION(5, "~-6;");
 
 	TEST_EXPRESSION(4, "5 ^ 1;");

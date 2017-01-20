@@ -64,32 +64,8 @@ public:
 	Value builtInProperty(const std::string& name);
 
 private:
-	void copyString(const char* value, int length)
-	{
-		delete[] stringValue;
-		stringValue = new char[length + 1];
-		memcpy(stringValue, value, length);
-		stringValue[length] = 0;
-	}
-	void copy(const Value& v)
-	{
-		type = v.valueType();
-		switch (type)
-		{
-		case ValueType::Reference:
-			reference = v.reference;
-			break;
-		case ValueType::Boolean:
-			booleanValue = v.booleanValue;
-			break;
-		case ValueType::Number:
-			numberValue = v.numberValue;
-			break;
-		case ValueType::String:
-			copyString(v.stringValue, strlen(v.stringValue));
-			break;
-		}
-	}
+	void copyString(const char* value, int length);
+	void copy(const Value& v);
 };
 
 class ValueContext

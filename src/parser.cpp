@@ -35,7 +35,7 @@ grok::parser::Expression* Parser::makeAST(string code)
 	}
 	catch (std::exception &)
 	{
-		std::cout << "\x1b[33mError\x1b[0m" << std::endl;
+		std::cout << "\x1b[33mError\x1b[0m" << std::endl; // TODO: Change the error output format here.
 		grok::parser::LexerInfo::Restart();
 		ast = nullptr;
 	}
