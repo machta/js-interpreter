@@ -38,7 +38,11 @@ void Interpreter::Visit(IntegralLiteral *literal)
 
 void Interpreter::Visit(StringLiteral *literal)
 {
-	temporaryValue() = Value(literal->string().c_str(), literal->string().length());
+	// Strip the quotes from the literal first.
+	string str = literal->string().substr(1);
+	str.pop_back();
+	temporaryValue() = Value(str.c_str(), str.length());
+
 //	os() << literal->string();
 }
 
