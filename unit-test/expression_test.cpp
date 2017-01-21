@@ -1,7 +1,5 @@
 #include "testcommon.h"
 
-// TEST_EXPRESSION(, "");
-
 TEST(expression_test, assignment)
 {
 	TEST_EXPRESSION(true, "var x = 6, y = 3; (x + y) == 9 && x - y == 3;");
@@ -101,7 +99,7 @@ TEST(expression_test, bitwise_op)
 
 	TEST_EXPRESSION(-6, "~5;");
 	TEST_EXPRESSION(5, "~(-6);");
-	//TEST_EXPRESSION(5, "~-6;");
+	//TEST_EXPRESSION(5, "~-6;"); // Parses with bad precedence.
 
 	TEST_EXPRESSION(4, "5 ^ 1;");
 

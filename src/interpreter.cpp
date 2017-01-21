@@ -103,7 +103,7 @@ void Interpreter::Visit(Identifier *id)
 	temporaryValue() = Value();
 #endif
 	//temporaryValue() = var.second;
-	returnVarName = id->GetName();
+	idName = id->GetName();
 	//returnVarContext = var.first;
 
 //	os() << id->GetName();
@@ -207,15 +207,17 @@ void Interpreter::Visit(MemberExpression *expr)
 	{
 		expr->member()->Accept(this);
 
-		Value res = val.builtInProperty(returnVarName);
+		Value res = val.builtInProperty(idName);
 		if (res.valueType() != ValueType::Undefined) // TODO: Possibly change undefined to null.
 		{
 			temporaryValue() = res;
 		}
 		else
 		{
-			auto var = val.reference->objectContext->namedValue(returnVarName);
+			auto var = val.reference->objectContext->namedValue(idName);
+			string name = idName;
 			temporaryValue() = var.second;
+			idName = name;
 			assignMemberContext = var.first;
 		}
 		//contextPush();
@@ -269,6 +271,7 @@ void Interpreter::Visit(NewExpression *expr)
 //	expr->member()->Accept(this);
 }
 
+// TODO: Add missing prefix unary - operator.
 void Interpreter::Visit(PrefixExpression *expr)
 {
 	expr->expr()->Accept(this);
@@ -277,17 +280,17 @@ void Interpreter::Visit(PrefixExpression *expr)
 	{
 	case PrefixOperation::kIncrement:
 	{
-		auto var = context().namedValue(returnVarName);
+		auto var = context().namedValue(idName);
 		double d = var.second.toNumber() + 1;
-		var.first->addNamedValue(returnVarName, Value(d));
+		var.first->addNamedValue(idName, Value(d));
 		temporaryValue() = Value(d);
 		return;
 	}
 	case PrefixOperation::kDecrement:
 	{
-		auto var = context().namedValue(returnVarName);
+		auto var = context().namedValue(idName);
 		double d = var.second.toNumber() - 1;
-		var.first->addNamedValue(returnVarName, Value(d));
+		var.first->addNamedValue(idName, Value(d));
 		temporaryValue() = Value(d);
 		return;
 	}
@@ -347,10 +350,10 @@ void Interpreter::Visit(PrefixExpression *expr)
 void Interpreter::Visit(PostfixExpression *expr)
 {
 	expr->expr()->Accept(this);
-	string name = returnVarName;
+	string name = idName;
 	assert(name.length() > 0);
-	auto var = context().namedValue(returnVarName);
-	returnVarName = "";
+	auto var = context().namedValue(idName);
+	idName = "";
 	assert(var.first != nullptr);
 	double d = var.second.toNumber();
 
@@ -584,7 +587,7 @@ void Interpreter::Visit(AssignExpression *expr)
 
 	if (assignMemberContext)
 	{
-		assignMemberContext->addNamedValue(returnVarName, rhs);
+		assignMemberContext->addNamedValue(idName, rhs);
 	}
 	else
 	{
@@ -594,15 +597,15 @@ void Interpreter::Visit(AssignExpression *expr)
 		}
 		else
 		{
-			auto var = context().namedValue(returnVarName);
+			auto var = context().namedValue(idName);
 
 			if (var.first == nullptr)
 			{
-				context().addNamedValue(returnVarName, rhs);
+				context().addNamedValue(idName, rhs);
 			}
 			else
 			{
-				var.first->addNamedValue(returnVarName, rhs);
+				var.first->addNamedValue(idName, rhs);
 			}
 		}
 	}
@@ -1002,7 +1005,7 @@ void Interpreter::Visit(ReturnStatement *stmt)
 		stmt->expr()->Accept(this);
 
 	tmpValue = returnValue();
-	returnVarName.clear();
+	idName.clear();
 
 	returnStatement = true;
 

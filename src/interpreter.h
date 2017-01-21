@@ -29,7 +29,7 @@ private:
 	ValueContext* globalContext;
 	std::stack<ValueContext*> contextStack;
 	Value tmpValue;
-	std::string returnVarName;
+	std::string idName;
 	//ValueContext* returnVarContext = nullptr;
 	bool returnStatement = false;
 	bool breakStatement = false;
@@ -59,15 +59,22 @@ private:
 	}
 	Value returnValue()
 	{
-		if (returnVarName.size() > 0)
+		if (idName.size() > 0)
 		{
-			return context().namedValue(returnVarName).second;
+			if (assignMemberContext)
+			{
+				auto tmp = assignMemberContext->namedValue(idName).second;
+				//assignMemberContext = nullptr;
+				return tmp;
+			}
+			return context().namedValue(idName).second;
 		}
-		return temporaryValue();
+		return tmpValue;
 	}
 	Value& temporaryValue()
 	{
-		returnVarName.clear();
+		idName.clear();
+		assignMemberContext = nullptr;
 		return tmpValue;
 	}
 };

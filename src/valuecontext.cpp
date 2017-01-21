@@ -74,7 +74,7 @@ string Value::toString()
 	case ValueType::Undefined:
 		return "undefined";
 	case ValueType::Reference:
-		return ""; // TODO: Check this.
+		return ""; // TODO: Check this. return something like nodejs '[object Object]'
 	case ValueType::Boolean:
 		return booleanValue ? "true" : "false";
 	case ValueType::Number:
