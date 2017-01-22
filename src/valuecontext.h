@@ -10,7 +10,7 @@ class Object;
 
 enum class ValueType
 {
-	Undefined, Reference, Boolean, Number, String // TODO: possibly change Undefined to null
+	Undefined, Null, Reference, Boolean, Number, String // TODO: possibly change Undefined to null
 };
 
 class Value
@@ -24,8 +24,7 @@ public:
 	double numberValue;
 	char* stringValue = nullptr;
 
-	Value() : type(ValueType::Undefined) {}
-	//Value(ValueType type) : type(type) {}
+	Value(ValueType type = ValueType::Undefined) : type(type) {}
 	Value(Object* value) : type(ValueType::Reference), reference(value) {}
 	Value(bool value) : type(ValueType::Boolean), booleanValue(value) {}
 	Value(double value) : type(ValueType::Number), numberValue(value) {}
@@ -60,7 +59,7 @@ public:
 	bool toBoolean();
 	double toNumber();
 	std::string toString();
-
+	std::string print();
 	Value builtInProperty(const std::string& name);
 
 private:

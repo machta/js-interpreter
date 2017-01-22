@@ -1,8 +1,16 @@
 #include "valuecontext.h"
 
 #include <limits>
+#include <cmath>
 
 using namespace std;
+
+namespace
+{
+
+	const double NaN = numeric_limits<double>::quiet_NaN();
+
+} // namespace
 
 pair<ValueContext*, Value> ValueContext::namedValue(const string& name)
 {
@@ -28,8 +36,12 @@ bool Value::toBoolean()
 {
 	switch (type)
 	{
+	case ValueType::Undefined:
+		return false;
+	case ValueType::Null:
+		return false;
 	case ValueType::Reference:
-		return false; // TODO: Check this.
+		return false;
 	case ValueType::Boolean:
 		return booleanValue;
 	case ValueType::Number:
@@ -45,6 +57,10 @@ double Value::toNumber()
 {
 	switch (type)
 	{
+	case ValueType::Undefined:
+		return NaN; // TODO: Check this.
+	case ValueType::Null:
+		return 0;
 	case ValueType::Reference:
 		return -1; // TODO: Check this.
 	case ValueType::Boolean:
@@ -59,7 +75,7 @@ double Value::toNumber()
 		}
 		catch (...)
 		{
-			d = numeric_limits<double>::quiet_NaN();
+			d = NaN;
 		}
 		return d;
 	default:
@@ -72,15 +88,35 @@ string Value::toString()
 	switch (type)
 	{
 	case ValueType::Undefined:
-		return "undefined";
+		return "undefined"; // TODO: Check this.
+	case ValueType::Null:
+		return "null";
 	case ValueType::Reference:
 		return ""; // TODO: Check this. return something like nodejs '[object Object]'
 	case ValueType::Boolean:
 		return booleanValue ? "true" : "false";
 	case ValueType::Number:
-		return to_string(numberValue);
+		double intpart;
+		return modf(numberValue, &intpart) == 0.0 ? to_string(static_cast<int>(intpart)) : to_string(numberValue);
 	case ValueType::String:
 		return stringValue;
+	default:
+		assert(0); return "";
+	}
+}
+
+string Value::print()
+{
+	switch (type)
+	{
+	case ValueType::Undefined:
+		return "undefined";
+	case ValueType::Reference: // TODO: Perhaps print object contents recursively.
+	case ValueType::Boolean:
+	case ValueType::Number:
+		return toString();
+	case ValueType::String:
+		return '\'' + toString() + '\'';
 	default:
 		assert(0); return "";
 	}

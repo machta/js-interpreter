@@ -121,3 +121,14 @@ TEST(expression_test, precedence)
 	TEST_EXPRESSION(450, "var x = (100 + 50) * 3;");
 	TEST_EXPRESSION(147, "var x = 100 + 50 - 3;");
 }
+
+// TODO: Implement explicit conversion.
+TEST(expression_test, auto_conversion)
+{
+	// Reference.
+	TEST_EXPRESSION(5, "5 + null;");
+	TEST_EXPRESSION("5null", "\"5\" + null;");
+	TEST_EXPRESSION("52", "\"5\" + 2;");
+	TEST_EXPRESSION(3, "\"5\" - 2;");
+	TEST_EXPRESSION(10, "\"5\" * \"2\";");
+}

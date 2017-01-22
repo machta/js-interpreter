@@ -14,13 +14,13 @@ using namespace grok::parser;
 
 void Interpreter::Visit(NullLiteral *literal)
 {
-	NOT_SUPPORTED;
+	temporaryValue() = Value(ValueType::Null);
 //	os() << "null";
 }
 
 void Interpreter::Visit(UndefinedLiteral *literal)
 {
-	NOT_SUPPORTED;
+	temporaryValue() = Value(ValueType::Undefined);
 //	os() << "undefined";
 }
 
@@ -98,13 +98,10 @@ void Interpreter::Visit(ObjectLiteral *literal)
 
 void Interpreter::Visit(Identifier *id)
 {
-	//auto var = context().namedValue(id->GetName()); // TODO: Handle undefined names.
-#ifndef NDEBUG
-	temporaryValue() = Value();
-#endif
-	//temporaryValue() = var.second;
+//#ifndef NDEBUG
+	temporaryValue() = Value(); // Omitting this causes an error.
+//#endif
 	idName = id->GetName();
-	//returnVarContext = var.first;
 
 //	os() << id->GetName();
 }

@@ -4,11 +4,19 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <algorithm>
 
 using namespace std;
 
 namespace
 {
+
+string trim(const string &s)
+{
+   auto wsfront = find_if_not(s.begin(), s.end(), [](int c){ return isspace(c); });
+   auto wsback = find_if_not(s.rbegin(), s.rend(), [](int c){ return isspace(c); }).base();
+   return wsback <= wsfront ? string() : string(wsfront, wsback);
+}
 
 void REPL()
 {
@@ -26,6 +34,10 @@ void REPL()
 		if (!cin)
 			break;
 
+		line = trim(line);
+		if (line.empty())
+			continue;
+
 		unique_ptr<grok::parser::Expression> e(p.makeAST(line));
 
 		if (e != nullptr)
@@ -35,12 +47,16 @@ void REPL()
 				Interpreter interpreter(&context);
 				e->Accept(&interpreter);
 
-				cout << interpreter.lastStatementValue().toString() << endl;
+				cout << interpreter.lastStatementValue().print() << endl;
 			}
 			catch (runtime_error& re)
 			{
 				cerr << "Execution error: " << re.what() << endl;
 			}
+		}
+		else
+		{
+			assert(0 && "makAST() failed");
 		}
 	}
 }
