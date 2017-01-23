@@ -17,7 +17,8 @@ Value execute(const string& code)
 	ValueContext context;
 	Memory memory;
 
-	grok::parser::Expression* e = p.makeAST(code);
+	string errorMessage;
+	grok::parser::Expression* e = p.makeAST(code, &errorMessage);
 	assert(e != nullptr);
 
 	Interpreter interpreter(&context, &memory);

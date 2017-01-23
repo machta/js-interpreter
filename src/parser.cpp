@@ -9,39 +9,37 @@
 
 using namespace std;
 
-grok::parser::Expression* Parser::makeAST(string code)
+Parser::Parser()
 {
-	grok::parser::ParserContext ctx{};
+	ctx = new grok::parser::ParserContext();
+	lex = new grok::parser::LexerInfo();
+	locator = new grok::parser::SourceLocator(lex);
+	factory = grok::parser::ASTFactory::GetFactoryInstance();
+	builder = new grok::parser::ASTBuilder(ctx, factory, locator);
+	parser = new grok::parser::Parser(ctx, builder, lex);
+}
 
-	// create a LexerInfo object, will store information about string
-	grok::parser::LexerInfo lex;
+Parser::~Parser()
+{
+	delete parser;
+	delete builder;
+}
 
-	// create a locator object this will help in printing position of errors
-	grok::parser::SourceLocator locator(&lex);
+grok::parser::Expression* Parser::makeAST(string code, string* errorMessage)
+{
+	grok::parser::Expression* ast = nullptr;
 
-	// ASTFactory object factory for AST nodes
-	grok::parser::ASTFactory *factory = grok::parser::ASTFactory::GetFactoryInstance();
-
-	// create an ASTBuilder object for building ast
-	grok::parser::ASTBuilder *builder = new grok::parser::ASTBuilder(&ctx, factory, &locator);
-
-	grok::parser::Parser *parser = new grok::parser::Parser(&ctx, builder, &lex);
-	grok::parser::Expression *ast = nullptr;
-
-	// TODO: Save the above objects, so that they don't have to be created every time.
 	try
 	{
 		ast = grok::parser::ParseProgram(parser, code);
 	}
-	catch (std::exception &)
+	catch (exception& e)
 	{
-		std::cout << "\x1b[33mError\x1b[0m" << std::endl; // TODO: Change the error output format here.
+		//std::cout << "\x1b[33mError\x1b[0m" << std::endl; // TODO: Change the error output format here.
 		grok::parser::LexerInfo::Restart();
 		ast = nullptr;
+		*errorMessage = e.what();
 	}
-
-	delete parser;
-	delete builder;
 
 	return ast;
 }

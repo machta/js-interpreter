@@ -19,11 +19,37 @@ string trim(const string &s)
    return wsback <= wsfront ? string() : string(wsfront, wsback);
 }
 
-void REPL()
+bool parseAndInterpret(const string& line, Parser& p, Interpreter& interpreter)
+{
+	string errorMessage;
+	unique_ptr<grok::parser::Expression> e(p.makeAST(line, &errorMessage));
+
+	if (e != nullptr)
+	{
+		try
+		{
+			e->Accept(&interpreter);
+
+			return true;
+		}
+		catch (runtime_error& re)
+		{
+			cerr << "Interpreter error: " << re.what() << endl;
+		}
+	}
+	else
+	{
+		//cerr << "Parser error: " << errorMessage << endl;
+	}
+	return false;
+}
+
+int REPL()
 {
 	Parser p;
 	ValueContext context;
 	Memory memory;
+	Interpreter interpreter(&context, &memory);
 
 	string line;
 
@@ -40,65 +66,54 @@ void REPL()
 		if (line.empty())
 			continue;
 
-		unique_ptr<grok::parser::Expression> e(p.makeAST(line));
-
-		if (e != nullptr)
-		{
-			try
-			{
-				Interpreter interpreter(&context, &memory);
-				e->Accept(&interpreter);
-
-				cout << interpreter.lastStatementValue().print() << endl;
-			}
-			catch (runtime_error& re)
-			{
-				cerr << "Execution error: " << re.what() << endl;
-			}
-		}
-		else
-		{
-			assert(0 && "makAST() failed");
-		}
+		if (parseAndInterpret(line, p, interpreter))
+			cout << interpreter.lastStatementValue().print() << endl;
 	}
+
+	return 0;
 }
 
-} // namespace
-
-// Either execute a script in file argv[1], or launch the REP loop.
-int main(int argc, char** argv)
+int executeScript(const string& filePath)
 {
-	if (argc > 1)
+	try
 	{
 		ifstream file;
 		file.exceptions(ifstream::failbit | ifstream::badbit);
 
-		try
+		file.open(filePath);
+
+		string code((istreambuf_iterator<char>(file)), (istreambuf_iterator<char>()));
+
+		Parser p;
+		ValueContext context;
+		Memory memory;
+		Interpreter interpreter(&context, &memory);
+
+		if (parseAndInterpret(code, p, interpreter))
 		{
-			file.open(argv[1]);
-
-			string code((istreambuf_iterator<char>(file)), (istreambuf_iterator<char>()));
-
-			Parser p;
-			ValueContext context;
-			Memory memory;
-
-			unique_ptr<grok::parser::Expression> e(p.makeAST(code));
-
-			Interpreter interpreter(&context, &memory);
-			e->Accept(&interpreter);
-
-			cout << interpreter.lastStatementValue().toString() << endl; // TODO: Remove this after console output is implemented.
+			string output = interpreter.lastStatementValue().print();
+			if (!output.empty())
+				cout << output << endl;
 			return 0;
 		}
-		catch (exception& e)
-		{
-			cerr << "Failed to execute the file: " << e.what() << endl;
-			return 1;
-		}
+
+		return 1;
+	}
+	catch (exception& e)
+	{
+		cerr << "Failed to execute the file: " << e.what() << endl;
+		return 1;
 	}
 
-	REPL();
-
 	return 0;
+}
+
+} // namespace
+
+int main(int argc, char** argv)
+{
+	if (argc <= 1)
+		return REPL();
+	else
+		return executeScript(argv[1]);
 }
