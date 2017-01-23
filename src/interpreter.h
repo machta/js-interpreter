@@ -42,6 +42,7 @@ private:
 	bool continueStatement = false;
 	Value* assignArray = nullptr;
 	ValueContext* assignMemberContext = nullptr;
+	ValueContext* functionContext = nullptr;
 
 	ValueContext& context()
 	{
@@ -54,6 +55,7 @@ private:
 //	}
 	void contextPush(ValueContext* context)
 	{
+		assert(context != nullptr);
 		contextStack.push_back(context);
 	}
 	void contextPop(bool deleteElement)

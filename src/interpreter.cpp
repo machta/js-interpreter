@@ -144,10 +144,12 @@ void Interpreter::Visit(ArgumentList *args)
 	else
 		fun = returnValue().reference->functionDeclaration;
 
+	ValueContext* fc = functionContext;
+
 	if (!list)
 	{
 		for (unsigned int i = 0; i < fun->arguments.size(); i++)
-			context().addNamedValue(fun->arguments[i], Value());
+			fc->addNamedValue(fun->arguments[i], Value());
 		return;
 	}
 
@@ -160,7 +162,7 @@ void Interpreter::Visit(ArgumentList *args)
 		else
 			temporaryValue() = Value();
 
-		context().addNamedValue(fun->arguments[i], returnValue());
+		fc->addNamedValue(fun->arguments[i], returnValue());
 
 		it++;
 	}
@@ -215,12 +217,18 @@ void Interpreter::Visit(MemberExpression *expr)
 	{
 	case MemberAccessKind::kCall:
 	{
-		contextPush(new ValueContext(globalContext));
+		ValueContext* fc = new ValueContext(globalContext);
+		functionContext = fc;
 		expr->member()->Accept(this);
+
+		contextPush(fc);
+		functionContext = nullptr;
+
 		if (val.reference->objectType() == ObjectType::BuiltIn)
 			temporaryValue() = val.reference->builtInFunction->body(&context());
 		else
 			val.reference->functionBody->Accept(this);
+
 		contextPop(true);
 		break;
 	}

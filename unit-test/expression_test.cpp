@@ -10,6 +10,7 @@ TEST(expression_test, binary_op)
 	TEST_EXPRESSION(12, "var a = 5*1/1; a = a + 1; a = a*2; a;");
 	TEST_EXPRESSION(1, "var a = 13; a = a % 2; a;");
 	TEST_EXPRESSION(-1./3, "var a = 1/3; a = -a; a*1;");
+	TEST_EXPRESSION(8, "var a = 2; var b = 6; a + b;");
 
 	// Reference.
 	TEST_EXPRESSION(150, "var x = 100 + 50;");
