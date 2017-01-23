@@ -1,16 +1,27 @@
 #include "interpreter.h"
 
 #include "object.h"
+#include "memory.h"
 
 #include <cmath>
 
 using namespace std;
 using namespace grok::parser;
 
+namespace
+{
+
 #define UNDEFINED Value()
 
 #define NOT_SUPPORTED throw runtime_error("not supported")
 //#define NOT_SUPPORTED assert(0)
+
+void registerObject(Memory* memory, Object* o)
+{
+	memory->registerObject(o);
+}
+
+} // namespace
 
 void Interpreter::Visit(NullLiteral *literal)
 {
@@ -59,7 +70,9 @@ void Interpreter::Visit(ArrayLiteral *literal)
 		array[i] = returnValue();
 	}
 
-	temporaryValue() = Value(new Object(array, size));
+	Object* o = new Object(array, size);
+	registerObject(memory, o);
+	temporaryValue() = Value(o);
 
 //	ProxyArray &arr = literal->exprs();
 
@@ -83,7 +96,9 @@ void Interpreter::Visit(ObjectLiteral *literal)
 		objectContext->addNamedValue(p.first, returnValue());
 	}
 
-	temporaryValue() = Value(new Object(objectContext));
+	Object* o = new Object(objectContext);
+	registerObject(memory, o);
+	temporaryValue() = Value(o);
 
 //	ProxyObject &obj = literal->proxy();
 
@@ -693,6 +708,11 @@ void Interpreter::Visit(BlockStatement *stmt)
 
 	for (auto &expr : *list)
 	{
+		// Mark & Sweep
+		// TODO: Move this where it makes more sense.
+		Memory::mark(contextStack.begin(), contextStack.end());
+		memory->sweep();
+
 		expr->Accept(this);
 
 		if (returnStatement)
@@ -934,7 +954,9 @@ void Interpreter::Visit(FunctionPrototype *proto)
 		fun->arguments.push_back(arg);
 	}
 
-	temporaryValue() = Value(new Object(fun));
+	Object* o = new Object(fun);
+	registerObject(memory, o);
+	temporaryValue() = Value(o);
 
 //	os() << "function " << proto->GetName() << "(";
 

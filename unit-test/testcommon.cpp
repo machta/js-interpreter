@@ -2,6 +2,7 @@
 
 #include "parser.h"
 #include "interpreter.h"
+#include "memory.h"
 
 using namespace std;
 
@@ -14,11 +15,12 @@ Value execute(const string& code)
 {
 	Parser p;
 	ValueContext context;
+	Memory memory;
 
 	grok::parser::Expression* e = p.makeAST(code);
 	assert(e != nullptr);
 
-	Interpreter interpreter(&context);
+	Interpreter interpreter(&context, &memory);
 	e->Accept(&interpreter);
 
 	delete e;

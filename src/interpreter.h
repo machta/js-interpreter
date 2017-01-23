@@ -6,28 +6,33 @@
 #include "parser/astvisitor.h"
 
 #include <iostream>
-#include <stack>
+#include <vector>
 #include <cassert>
 
-class Interpreter : public grok::parser::ASTVisitor {
+class Memory;
+
+class Interpreter : public grok::parser::ASTVisitor
+{
 public:
-	Interpreter(ValueContext* context) : globalContext(context)
+	Interpreter(ValueContext* context, Memory* memory) : globalContext(context), memory(memory)
 	{
-		contextStack.push(context);
+		contextStack.push_back(context);
 	}
 
 	Value lastStatementValue()
 	{
 		return returnValue();
 	}
-public:
+
+// Declaration of ASTVisitor's virtual methods.
 #define DECLARE_VISITOR_METHOD(type) void Visit(grok::parser::type *) override;
 AST_NODE_LIST(DECLARE_VISITOR_METHOD)
 #undef DECLARE_VISITOR_METHOD
 
 private:
 	ValueContext* globalContext;
-	std::stack<ValueContext*> contextStack;
+	Memory* memory;
+	std::vector<ValueContext*> contextStack;
 	Value tmpValue;
 	std::string idName;
 	//ValueContext* returnVarContext = nullptr;
@@ -40,7 +45,7 @@ private:
 	ValueContext& context()
 	{
 		assert(contextStack.size() > 0);
-		return *contextStack.top();
+		return *contextStack.back();
 	}
 //	void contextPush()
 //	{
@@ -48,14 +53,14 @@ private:
 //	}
 	void contextPush(ValueContext* context)
 	{
-		contextStack.push(context);
+		contextStack.push_back(context);
 	}
 	void contextPop(bool deleteElement)
 	{
 		assert(contextStack.size() > 0);
 		if (deleteElement)
 			delete &context();
-		contextStack.pop();
+		contextStack.pop_back();
 	}
 	Value returnValue()
 	{

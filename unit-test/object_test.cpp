@@ -33,4 +33,6 @@ TEST(object_test, reference)
 	TEST_EXPRESSION(true, "var a = { property: 5 }; var b = 5; a.property == b;");
 
 	TEST_EXPRESSION(10, "var a = { property: 5 }; var b = { property: a }; b.property.property = 10; a.property;");
+
+	TEST_EXPRESSION(true, "var a = { a: 5 }; var b = { b: 55 }; a = b; b.b == a.b;");
 }

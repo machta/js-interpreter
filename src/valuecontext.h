@@ -15,7 +15,7 @@ enum class ValueType
 
 class Value
 {
-	ValueType type;
+	ValueType type = ValueType::Undefined;
 
 public:
 	// TODO: Make a union out of these and possibly make them private.
@@ -35,6 +35,10 @@ public:
 	}
 
 	~Value()
+	{
+		destroy();
+	}	
+	void destroy()
 	{
 		if (type == ValueType::String)
 		{
@@ -62,6 +66,8 @@ public:
 	std::string print();
 	Value builtInProperty(const std::string& name);
 
+	void mark();
+
 private:
 	void copyString(const char* value, int length);
 	void copy(const Value& v);
@@ -80,6 +86,11 @@ public:
 
 	std::pair<ValueContext*, Value> namedValue(const std::string& name); // TODO: make this const
 	void addNamedValue(const std::string& name, const Value& value);
+	void mark()
+	{
+		for (auto& e : map)
+			e.second.mark();
+	}
 };
 
 #endif // VALUECONTEXT_H

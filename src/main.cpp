@@ -1,5 +1,6 @@
 #include "parser.h"
 #include "interpreter.h"
+#include "memory.h"
 
 #include <string>
 #include <iostream>
@@ -22,6 +23,7 @@ void REPL()
 {
 	Parser p;
 	ValueContext context;
+	Memory memory;
 
 	string line;
 
@@ -44,7 +46,7 @@ void REPL()
 		{
 			try
 			{
-				Interpreter interpreter(&context);
+				Interpreter interpreter(&context, &memory);
 				e->Accept(&interpreter);
 
 				cout << interpreter.lastStatementValue().print() << endl;
@@ -79,10 +81,11 @@ int main(int argc, char** argv)
 
 			Parser p;
 			ValueContext context;
+			Memory memory;
 
 			unique_ptr<grok::parser::Expression> e(p.makeAST(code));
 
-			Interpreter interpreter(&context);
+			Interpreter interpreter(&context, &memory);
 			e->Accept(&interpreter);
 
 			cout << interpreter.lastStatementValue().toString() << endl; // TODO: Remove this after console output is implemented.

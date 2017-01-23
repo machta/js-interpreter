@@ -37,6 +37,7 @@ public:
 	grok::parser::Expression* functionBody;
 	Value* array;
 	int arrayLength;
+	bool markFlag = false;
 
 	Object(ValueContext* value) : type(ObjectType::Object), objectContext(value) {}
 	Object(FunctionProtorype* value) : type(ObjectType::Function), functionProtorype(value) {}
@@ -51,7 +52,7 @@ public:
 			return;
 		case ObjectType::Function:
 			delete functionProtorype;
-			delete functionBody;
+			//delete functionBody; // TODO: Make a copy of the body, so that it doesn't get deleted when the AST gets destroyed.
 			return;
 		case ObjectType::Array:
 			delete[] array;
@@ -59,24 +60,12 @@ public:
 		}
 	}
 
+	Object(const Object&) = delete;
+	Object& operator=(const Object&) = delete;
+
 	ObjectType objectType() const { return type; }
 
-//	bool buildInMethod(ValueContext* parameters)
-//	{
-//		switch (type)
-//		{
-//		case ObjectType::Object:
-//			delete objectContext;
-//			return;
-//		case ObjectType::Function:
-//			delete functionProtorype;
-//			delete functionBody;
-//			return;
-//		case ObjectType::Array:
-//			delete[] array;
-//			return;
-//		}
-//	}
+	void mark();
 
 private:
 };

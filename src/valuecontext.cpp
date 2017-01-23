@@ -1,5 +1,7 @@
 #include "valuecontext.h"
 
+#include "object.h"
+
 #include <limits>
 #include <cmath>
 
@@ -11,26 +13,6 @@ namespace
 	const double NaN = numeric_limits<double>::quiet_NaN();
 
 } // namespace
-
-pair<ValueContext*, Value> ValueContext::namedValue(const string& name)
-{
-	assert(name.length() > 0);
-
-	if (map.find(name) != map.end())
-		return make_pair(this, map.at(name));
-
-	if (parent != nullptr)
-		return parent->namedValue(name);
-
-	return make_pair(nullptr, Value()); // TODO: Return undefined instead.
-}
-
-void ValueContext::addNamedValue(const string& name, const Value& value)
-{
-	assert(name.length() > 0);
-
-	map[name] = value;
-}
 
 bool Value::toBoolean()
 {
@@ -133,9 +115,16 @@ Value Value::builtInProperty(const string& name)
 	return Value();
 }
 
+void Value::mark()
+{
+	if (type == ValueType::Reference)
+		if (reference->markFlag == false)
+			reference->mark();
+}
+
 void Value::copyString(const char* value, int length)
 {
-	delete[] stringValue;
+	assert(stringValue == nullptr);
 	stringValue = new char[length + 1];
 	memcpy(stringValue, value, length);
 	stringValue[length] = 0;
@@ -143,9 +132,11 @@ void Value::copyString(const char* value, int length)
 
 void Value::copy(const Value& v)
 {
+	destroy();
 	type = v.valueType();
 	switch (type)
 	{
+	case ValueType::Null:
 	case ValueType::Undefined:
 		break;
 	case ValueType::Reference:
@@ -162,3 +153,25 @@ void Value::copy(const Value& v)
 		break;
 	}
 }
+
+pair<ValueContext*, Value> ValueContext::namedValue(const string& name)
+{
+	assert(name.length() > 0);
+
+	if (map.find(name) != map.end())
+		return make_pair(this, map.at(name));
+
+	if (parent != nullptr)
+		return parent->namedValue(name);
+
+	return make_pair(nullptr, Value()); // TODO: Return undefined instead.
+}
+
+void ValueContext::addNamedValue(const string& name, const Value& value)
+{
+	assert(name.length() > 0);
+
+	map[name] = value;
+}
+
+
