@@ -81,23 +81,14 @@ int executeScript(const string& filePath)
 		file.exceptions(ifstream::failbit | ifstream::badbit);
 
 		file.open(filePath);
-
-		string code((istreambuf_iterator<char>(file)), (istreambuf_iterator<char>()));
+		string code((istreambuf_iterator<char>(file)), (istreambuf_iterator<char>())); // Read the whole file.
 
 		Parser p;
 		ValueContext context;
 		Memory memory;
 		Interpreter interpreter(&context, &memory);
 
-		if (parseAndInterpret(code, p, interpreter))
-		{
-			string output = interpreter.lastStatementValue().print();
-			if (!output.empty())
-				cout << output << endl;
-			return 0;
-		}
-
-		return 1;
+		return parseAndInterpret(code, p, interpreter) ? 0 : 1;
 	}
 	catch (exception& e)
 	{

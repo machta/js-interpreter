@@ -16,6 +16,7 @@ class Interpreter : public grok::parser::ASTVisitor
 public:
 	Interpreter(ValueContext* context, Memory* memory) : globalContext(context), memory(memory)
 	{
+		context->initBuiltIn(memory);
 		contextStack.push_back(context);
 	}
 

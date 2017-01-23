@@ -7,6 +7,7 @@
 #include <cassert>
 
 class Object;
+class Memory;
 
 enum class ValueType
 {
@@ -91,6 +92,7 @@ public:
 		for (auto& e : map)
 			e.second.mark();
 	}
+	void initBuiltIn(Memory* memory);
 };
 
 #endif // VALUECONTEXT_H

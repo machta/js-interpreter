@@ -1,5 +1,5 @@
 #ifndef MEMORY_H
-#define MEMORY_H_H
+#define MEMORY_H
 
 #include "valuecontext.h"
 

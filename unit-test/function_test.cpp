@@ -21,5 +21,10 @@ TEST(function_test, scope)
 	//TEST_EXPRESSION(true, "var fun = function() { var a = 0; for (i = 0; i < 10; i++) a++; return i; }; fun(); i == 10;"); // i is not propagated to the global scope
 	//TEST_EXPRESSION(2, "var fun = function() { var a = 0; for (var i = 0; i < 10; i++) a++; return i; }; fun(); i == 10;"); // i undefined
 }
+// TODO: Automatic global variable assignment.
 
-// TODO: Automatic global vars
+TEST(function_test, built_in)
+{
+	TEST_EXPRESSION(2, "var a = 2; console.log(a); a;");
+	TEST_EXPRESSION(1, "console.log('5*5*5 = ' + 5*5*5); 1;");
+}

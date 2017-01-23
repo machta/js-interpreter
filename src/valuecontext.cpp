@@ -1,6 +1,8 @@
 #include "valuecontext.h"
 
 #include "object.h"
+#include "builtinfunction.h"
+#include "memory.h"
 
 #include <limits>
 #include <cmath>
@@ -10,7 +12,24 @@ using namespace std;
 namespace
 {
 
-	const double NaN = numeric_limits<double>::quiet_NaN();
+const double NaN = numeric_limits<double>::quiet_NaN();
+
+class Log : public BuiltInFunction
+{
+public:
+	Log()
+	{
+		declaration = new FunctionDeclaration("log");
+		declaration->arguments.push_back("message");
+	}
+
+	virtual Value body(ValueContext* context) override
+	{
+		Value message = context->namedValue("message").second;
+		cout << message.toString() << endl;
+		return Value();
+	}
+};
 
 } // namespace
 
@@ -174,4 +193,14 @@ void ValueContext::addNamedValue(const string& name, const Value& value)
 	map[name] = value;
 }
 
+void ValueContext::initBuiltIn(Memory* memory)
+{
+	ValueContext* context = new ValueContext();
+	context->addNamedValue("log", new Object(new Log()));
 
+	Object* o = new Object(context);
+	memory->registerObject(o);
+
+	Value console(o);
+	addNamedValue("console", console);
+}

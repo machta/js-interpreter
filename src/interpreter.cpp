@@ -2,6 +2,7 @@
 
 #include "object.h"
 #include "memory.h"
+#include "builtinfunction.h"
 
 #include <cmath>
 
@@ -13,7 +14,7 @@ namespace
 
 #define UNDEFINED Value()
 
-#define NOT_SUPPORTED throw runtime_error("not supported")
+#define NOT_IMPLEMENTED throw runtime_error("feature not implemented")
 //#define NOT_SUPPORTED assert(0)
 
 void registerObject(Memory* memory, Object* o)
@@ -37,7 +38,7 @@ void Interpreter::Visit(UndefinedLiteral *literal)
 
 void Interpreter::Visit(ThisHolder *holder)
 {
-	NOT_SUPPORTED;
+	NOT_IMPLEMENTED;
 //	os() << "this";
 }
 
@@ -129,7 +130,7 @@ void Interpreter::Visit(BooleanLiteral *literal)
 
 void Interpreter::Visit(RegExpLiteral *reg)
 {
-	NOT_SUPPORTED; // I could use regex but it's too much work... :)
+	NOT_IMPLEMENTED; // I could use regex but it's too much work... :)
 //	os() << '/' << '/';
 }
 
@@ -137,7 +138,11 @@ void Interpreter::Visit(ArgumentList *args)
 {
 	auto list = args->args();
 
-	FunctionProtorype* fun = returnValue().reference->functionProtorype;
+	FunctionDeclaration* fun;
+	if (returnValue().reference->objectType() == ObjectType::BuiltIn)
+		fun = returnValue().reference->builtInFunction->declaration;
+	else
+		fun = returnValue().reference->functionDeclaration;
 
 	if (!list)
 	{
@@ -180,7 +185,7 @@ void Interpreter::Visit(ArgumentList *args)
 
 void Interpreter::Visit(CallExpression *expr)
 { // TODO: Find out why this is not needed.
-	NOT_SUPPORTED;
+	NOT_IMPLEMENTED;
 //	expr->expr()->Accept(this);
 
 //	switch (expr->kind()) {
@@ -209,12 +214,16 @@ void Interpreter::Visit(MemberExpression *expr)
 	switch (expr->kind())
 	{
 	case MemberAccessKind::kCall:
+	{
 		contextPush(new ValueContext(globalContext));
 		expr->member()->Accept(this);
-		//if (val.reference->buildInMethod(&context()))
+		if (val.reference->objectType() == ObjectType::BuiltIn)
+			temporaryValue() = val.reference->builtInFunction->body(&context());
+		else
 			val.reference->functionBody->Accept(this);
 		contextPop(true);
 		break;
+	}
 	case MemberAccessKind::kDot:
 	{
 		expr->member()->Accept(this);
@@ -278,7 +287,7 @@ void Interpreter::Visit(MemberExpression *expr)
 
 void Interpreter::Visit(NewExpression *expr)
 {
-	NOT_SUPPORTED;
+	NOT_IMPLEMENTED;
 //	os() << "new ";
 //	expr->member()->Accept(this);
 }
@@ -652,7 +661,7 @@ void Interpreter::Visit(TernaryExpression *expr)
 
 void Interpreter::Visit(CommaExpression *expr)
 {
-	NOT_SUPPORTED;
+	NOT_IMPLEMENTED;
 //	auto exprs = expr->exprs();
 //	if (!exprs->Size())
 //		return;
@@ -876,7 +885,7 @@ void Interpreter::Visit(ContinueStatement *stmt)
 
 void Interpreter::Visit(ThrowStatement *stmt)
 {
-	NOT_SUPPORTED;
+	NOT_IMPLEMENTED;
 
 //	os() << "throw ";
 //	stmt->expr()->Accept(this);
@@ -885,7 +894,7 @@ void Interpreter::Visit(ThrowStatement *stmt)
 
 void Interpreter::Visit(TryCatchStatement *stmt)
 {
-	NOT_SUPPORTED;
+	NOT_IMPLEMENTED;
 
 //	os() << "try {\n";
 //	stmt->try_block()->Accept(this);
@@ -906,7 +915,7 @@ void Interpreter::Visit(TryCatchStatement *stmt)
 
 void Interpreter::Visit(LabelledStatement *stmt)
 {
-	NOT_SUPPORTED;
+	NOT_IMPLEMENTED;
 
 //	os() << stmt->label() << ":\n";
 //	stmt->expr()->Accept(this);
@@ -915,7 +924,7 @@ void Interpreter::Visit(LabelledStatement *stmt)
 
 void Interpreter::Visit(CaseClauseStatement *stmt)
 {
-	NOT_SUPPORTED;
+	NOT_IMPLEMENTED;
 
 //	os() << "case ";
 //	stmt->clause()->Accept(this);
@@ -926,7 +935,7 @@ void Interpreter::Visit(CaseClauseStatement *stmt)
 
 void Interpreter::Visit(SwitchStatement *stmt)
 {
-	NOT_SUPPORTED;
+	NOT_IMPLEMENTED;
 
 //	os() << "switch (";
 //	stmt->expr()->Accept(this);
@@ -947,7 +956,7 @@ void Interpreter::Visit(SwitchStatement *stmt)
 
 void Interpreter::Visit(FunctionPrototype *proto)
 {
-	FunctionProtorype* fun = new FunctionProtorype(proto->GetName());
+	FunctionDeclaration* fun = new FunctionDeclaration(proto->GetName());
 
 	for (const auto& arg : proto->GetArgs())
 	{
