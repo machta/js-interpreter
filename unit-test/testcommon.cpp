@@ -18,14 +18,19 @@ Value execute(const string& code)
 	Memory memory;
 
 	string errorMessage;
-	grok::parser::Expression* e = p.makeAST(code, &errorMessage);
-	assert(e != nullptr);
+	jast::Expression* e = p.makeAST(code, &errorMessage);
+	EXPECT_NE(e, nullptr);
 
-	Interpreter interpreter(&context, &memory);
-	e->Accept(&interpreter);
+	Value res;
+	if (e)
+	{
+		Interpreter interpreter(&context, &memory);
+		e->Accept(&interpreter);
 
-	delete e;
-	return interpreter.lastStatementValue();
+		delete e;
+		res = interpreter.lastStatementValue();
+	}
+	return res;
 }
 
 } // namespace

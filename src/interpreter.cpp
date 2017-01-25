@@ -7,7 +7,7 @@
 #include <cmath>
 
 using namespace std;
-using namespace grok::parser;
+using namespace jast;
 
 namespace
 {
@@ -51,10 +51,10 @@ void Interpreter::Visit(IntegralLiteral *literal)
 void Interpreter::Visit(StringLiteral *literal)
 {
 	// Strip the quotes from the literal first.
-	string str = literal->string().substr(1);
-	str.pop_back();
+	string str = literal->string();
 	temporaryValue() = Value(str.c_str(), str.length());
 
+//	os() << "'" << literal->string() << "'";
 //	os() << literal->string();
 }
 
@@ -1049,4 +1049,9 @@ void Interpreter::Visit(ReturnStatement *stmt)
 //	if (stmt->expr())
 //		stmt->expr()->Accept(this);
 //	os() << ";\n";
+}
+
+void Interpreter::Visit(TemplateLiteral*)
+{
+	NOT_IMPLEMENTED;
 }

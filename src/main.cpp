@@ -22,7 +22,7 @@ string trim(const string &s)
 bool parseAndInterpret(const string& line, Parser& p, Interpreter& interpreter)
 {
 	string errorMessage;
-	unique_ptr<grok::parser::Expression> e(p.makeAST(line, &errorMessage));
+	unique_ptr<jast::Expression> e(p.makeAST(line, &errorMessage));
 
 	if (e != nullptr)
 	{

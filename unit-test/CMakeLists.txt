@@ -7,7 +7,7 @@ include_directories(../include googletest/googletest/include)
 # The tests.
 file(GLOB SRC *.cpp)
 add_executable(unit-test ${SRC})
-target_link_libraries(unit-test js-interpreter-lib JAST gtest gtest_main)
+target_link_libraries(unit-test js-interpreter-lib gtest gtest_main)
 
 if(MSVC)
 	set_source_files_properties(${SRC} PROPERTIES COMPILE_FLAGS "-W4")

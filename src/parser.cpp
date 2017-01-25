@@ -1,42 +1,44 @@
 #include "parser.h"
 
-#include "parser/parser.h"
-#include "parser/ast-builder.h"
-#include "parser/astfactory.h"
-#include "parser/lexinfo.h"
-#include "parser/source-locator.h"
-#include "parser/token.h"
+#include "jast/parser.h"
+#include "jast/ast-builder.h"
+#include "jast/astfactory.h"
+#include "jast/source-locator.h"
+#include "jast/token.h"
+
+#include <sstream>
 
 using namespace std;
 
 Parser::Parser()
-{
-	ctx = new grok::parser::ParserContext();
-	lex = new grok::parser::LexerInfo();
-	locator = new grok::parser::SourceLocator(lex);
-	factory = grok::parser::ASTFactory::GetFactoryInstance();
-	builder = new grok::parser::ASTBuilder(ctx, factory, locator);
-	parser = new grok::parser::Parser(ctx, builder, lex);
-}
+{}
 
 Parser::~Parser()
-{
-	delete parser;
-	delete builder;
-}
+{}
 
-grok::parser::Expression* Parser::makeAST(string code, string* errorMessage)
+jast::Expression* Parser::makeAST(string code, string* errorMessage)
 {
-	grok::parser::Expression* ast = nullptr;
+	// TODO: save some of these objects for later.
+	stringstream ss(code);
+	jast::Scanner scanner(ss);
+	jast::Tokenizer lex(&scanner);
+
+	jast::ParserContext ctx{};
+	jast::ASTFactory *factory = jast::ASTFactory::GetFactoryInstance();
+	jast::SourceLocator locator(&lex);
+	jast::ASTBuilder *builder = new jast::ASTBuilder(&ctx, factory, &locator);
+
+	jast::Parser *parser = new jast::Parser(&ctx, builder, &lex);
+	//lex.reset(&scanner); // Undefined reference.
+
+	jast::Expression* ast = nullptr;
 
 	try
 	{
-		ast = grok::parser::ParseProgram(parser, code);
+		ast = jast::ParseProgram(parser);
 	}
 	catch (exception& e)
 	{
-		//std::cout << "\x1b[33mError\x1b[0m" << std::endl; // TODO: Change the error output format here.
-		grok::parser::LexerInfo::Restart();
 		ast = nullptr;
 		*errorMessage = e.what();
 	}

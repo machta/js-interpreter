@@ -3,7 +3,7 @@
 
 #include "valuecontext.h"
 
-#include "parser/astvisitor.h"
+#include "jast/astvisitor.h"
 
 #include <iostream>
 #include <vector>
@@ -11,7 +11,7 @@
 
 class Memory;
 
-class Interpreter : public grok::parser::ASTVisitor
+class Interpreter : public jast::ASTVisitor
 {
 public:
 	Interpreter(ValueContext* context, Memory* memory) : globalContext(context), memory(memory)
@@ -26,7 +26,7 @@ public:
 	}
 
 // Declaration of ASTVisitor's virtual methods.
-#define DECLARE_VISITOR_METHOD(type) void Visit(grok::parser::type *) override;
+#define DECLARE_VISITOR_METHOD(type) void Visit(jast::type *) override;
 AST_NODE_LIST(DECLARE_VISITOR_METHOD)
 #undef DECLARE_VISITOR_METHOD
 

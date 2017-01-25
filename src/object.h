@@ -3,7 +3,7 @@
 
 #include "valuecontext.h"
 
-#include <parser/expression.h>
+#include <jast/expression.h>
 
 #include <cstring>
 #include <string>
@@ -27,7 +27,7 @@ public:
 	// TODO: Make a union out of these and possibly make them private.
 	ValueContext* objectContext;
 	FunctionDeclaration* functionDeclaration;
-	grok::parser::Expression* functionBody;
+	jast::Expression* functionBody;
 	BuiltInFunction* builtInFunction;
 	Value* array;
 	int arrayLength;

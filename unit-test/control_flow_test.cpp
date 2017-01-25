@@ -30,20 +30,21 @@ TEST(control_flow_test, break_statement)
 {
 	TEST_EXPRESSION(10, "var a = 0; for (b = 0; b < 10; b++){ a++;} a;");
 
+	TEST_EXPRESSION(5, "var a = 0; while(true){ if (a >= 5) {break;} a++;} a;");
+
+	TEST_EXPRESSION(5, "var a = 0; var b = 0; while(b < 10){ b++; if (a >= 5) break; a++;} a;");
+
 	TEST_EXPRESSION(5, "var a = 0; for (b = 0; b < 10; b++){ if (a >= 5) {break;} a++;} a;");
-	//TEST_EXPRESSION(5, "var a = 0; for (b = 0; b < 10; b++){ if (a >= 5) break; a++;} a;"); // Cannot parse break;
+	TEST_EXPRESSION(5, "var a = 0; for (b = 0; b < 10; b++){ if (a >= 5)  break;  a++;} a;");
 
 	//TEST_EXPRESSION(5, "var a = 0; for (;;){ if (a >= 5) break;} a;"); // Weird undefined phantom variable.
-
-	TEST_EXPRESSION(5, "var a = 0; for (b = 0; b < 10; b++){ if (a >= 5) {continue;} a++;} a;");
-	//TEST_EXPRESSION(5, "var a = 0; for (b = 0; b < 10; b++){ if (a >= 5) continue; a++;} a;"); // Cannot parse this continue.
 }
 
 TEST(control_flow_test, continue_statement)
 {
-	TEST_EXPRESSION(5, "var a = 0; while(true){ if (a >= 5) {break;} a++;} a;");
-	//TEST_EXPRESSION(5, "var a = 0; var b = 0; while(b < 10){ b++; if (a >= 5) break; a++;} a;"); // Cannot parse break;
-
 	TEST_EXPRESSION(5, "var a = 0; var b = 0; while(b < 10){ b++; if (a >= 5) {continue;} a++;} a;");
-	//TEST_EXPRESSION(5, "var a = 0; var b = 0; while(b < 10){ b++; if (a >= 5) continue; a++;} a;"); // Cannot parse this continue.
+	TEST_EXPRESSION(5, "var a = 0; var b = 0; while(b < 10){ b++; if (a >= 5)  continue;  a++;} a;");
+
+	TEST_EXPRESSION(5, "var a = 0; for (b = 0; b < 10; b++){ if (a >= 5) {continue;} a++;} a;");
+	TEST_EXPRESSION(5, "var a = 0; for (b = 0; b < 10; b++){ if (a >= 5)  continue;  a++;} a;");
 }

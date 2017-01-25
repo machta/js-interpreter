@@ -4,7 +4,7 @@
 #include "gtest/gtest.h"
 #include <string>
 
-#define TEST_EXPRESSION(a_, b_) {SCOPED_TRACE(""); TestCommon::testExpression((a_), (b_));}
+#define TEST_EXPRESSION(a_, b_) {SCOPED_TRACE("\n"); TestCommon::testExpression((a_), (b_));}
 
 class TestCommon
 {
