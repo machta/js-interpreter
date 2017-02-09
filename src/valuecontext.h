@@ -21,18 +21,20 @@ class Value
 	ValueType type = ValueType::Undefined;
 
 public:
-	// TODO: Make a union out of these and possibly make them private.
-	Object* reference;
-	bool booleanValue;
-	double numberValue;
-	char* stringValue = nullptr;
+	union
+	{
+		Object* reference;
+		bool booleanValue;
+		double numberValue;
+		char* stringValue;
+	};
 
 	Value(ValueType type = ValueType::Undefined) : type(type) {}
 	Value(Object* value) : type(ValueType::Reference), reference(value) {}
 	Value(bool value) : type(ValueType::Boolean), booleanValue(value) {}
 	Value(double value) : type(ValueType::Number), numberValue(value) {}
 	Value(int value) : type(ValueType::Number), numberValue(value) {}
-	Value(const char* value, int length) : type(ValueType::String)
+	Value(const char* value, int length) : type(ValueType::String), stringValue(nullptr)
 	{
 		copyString(value, length);
 	}

@@ -27,15 +27,21 @@ class Object
 	ObjectType type;
 
 public:
-	// TODO: Make a union out of these and possibly make them private.
-	ValueContext* objectContext;
-	FunctionDeclaration* functionDeclaration;
-	jast::Expression* functionBody;
-	BuiltInFunction* builtInFunction;
-	std::vector<Value> array;
+	union
+	{
+		ValueContext* objectContext;
+		FunctionDeclaration* functionDeclaration;
+		std::vector<Value>* array;
+	};
+	union
+	{
+		jast::Expression* functionBody;
+		BuiltInFunction* builtInFunction;
+	};
+
 	bool markFlag = false;
 
-	Object() : type(ObjectType::Array) {}
+	Object() : type(ObjectType::Array), array(new std::vector<Value>()) {}
 	Object(ValueContext* value) : type(ObjectType::Object), objectContext(value) {}
 	Object(FunctionDeclaration* value) : type(ObjectType::Function), functionDeclaration(value), functionBody(nullptr) {}
 	Object(BuiltInFunction* value) : type(ObjectType::BuiltIn), builtInFunction(value) {}

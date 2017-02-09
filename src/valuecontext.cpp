@@ -172,7 +172,7 @@ Value Value::builtInProperty(const string& name)
 	else if (type == ValueType::Reference && reference->objectType() == ObjectType::Array)
 	{
 		if (name == "length")
-			return Value(static_cast<int>(reference->array.size()));
+			return Value(static_cast<int>(reference->array->size()));
 	}
 
 	return Value();
@@ -187,7 +187,7 @@ void Value::mark()
 
 void Value::copyString(const char* value, int length)
 {
-	assert(stringValue == nullptr);
+	//assert(stringValue == nullptr);
 	stringValue = new char[length + 1];
 	memcpy(stringValue, value, length);
 	stringValue[length] = 0;

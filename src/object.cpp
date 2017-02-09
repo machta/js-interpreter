@@ -19,6 +19,7 @@ Object::~Object()
 		//delete functionBody; // TODO: Make a copy of the body, so that it doesn't get deleted when the AST gets destroyed.
 		return;
 	case ObjectType::Array:
+		delete array;
 		return;
 	}
 }
@@ -35,8 +36,8 @@ void Object::mark()
 	case ObjectType::Function:
 		return;
 	case ObjectType::Array:
-		for (unsigned int i = 0; i < array.size(); i++)
-			array[i].mark();
+		for (unsigned int i = 0; i < array->size(); i++)
+			array->operator [](i).mark();
 		return;
 	}
 }

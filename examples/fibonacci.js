@@ -1,4 +1,4 @@
-var N = 20;
+var N = 30;
 var array = [];
 
 var fib = function(n)

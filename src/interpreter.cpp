@@ -68,7 +68,7 @@ void Interpreter::Visit(ArrayLiteral *literal)
 	for (unsigned int i = 0; i < arr.size(); i++)
 	{
 		arr[i]->Accept(this);
-		o->array.push_back(returnValue());
+		o->array->push_back(returnValue());
 	}
 
 	temporaryValue() = Value(o);
@@ -257,16 +257,16 @@ void Interpreter::Visit(MemberExpression *expr)
 		// TODO: Implement access with negative index.
 		expr->member()->Accept(this);
 		int index = returnValue().toNumber();
-		if (0 <= index && index < static_cast<int>(val.reference->array.size()))
+		if (0 <= index && index < static_cast<int>(val.reference->array->size()))
 		{
-			temporaryValue() = val.reference->array[index];
+			temporaryValue() = val.reference->array->operator [](index);
 			//returnVarContext = nullptr;
 		}
 		else
 		{
 			temporaryValue() = Value();
 		}
-		assignArray = &val.reference->array;
+		assignArray = val.reference->array;
 		assignArrayIndex = index;
 		break;
 	}
