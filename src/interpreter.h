@@ -1,3 +1,5 @@
+#include "global.h"
+
 #ifndef INTERPRETER_H
 #define INTERPRETER_H
 
@@ -86,6 +88,7 @@ private:
 		assignMemberContext = nullptr;
 		return tmpValue;
 	}
+	void markAndSweep();
 };
 
 #endif // INTERPRETER_H

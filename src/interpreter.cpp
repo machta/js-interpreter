@@ -732,10 +732,7 @@ void Interpreter::Visit(BlockStatement *stmt)
 
 	for (auto &expr : *list)
 	{
-		// Mark & Sweep
-		// TODO: Move this where it makes more sense.
-		Memory::mark(contextStack.begin(), contextStack.end());
-		memory->sweep();
+		markAndSweep();
 
 		expr->Accept(this);
 
@@ -1061,4 +1058,15 @@ void Interpreter::Visit(ReturnStatement *stmt)
 void Interpreter::Visit(TemplateLiteral*)
 {
 	NOT_IMPLEMENTED;
+}
+
+void Interpreter::markAndSweep()
+{
+	if (totalMemoryAllocationSize > TOTAL_MEMORY_LIMIT && memoryAllocationCounter > MEMORY_COUNTER_LIMIT)
+	{
+		//cerr << "Mark & Sweep" << endl;
+		memoryAllocationCounter = 0;
+		Memory::mark(contextStack.begin(), contextStack.end());
+		memory->sweep();
+	}
 }

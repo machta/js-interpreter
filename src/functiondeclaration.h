@@ -1,3 +1,5 @@
+#include "global.h"
+
 #ifndef BUILTINFUNCTION_H
 #define BUILTINFUNCTION_H
 

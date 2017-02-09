@@ -1,3 +1,5 @@
+#include "global.h"
+
 #ifndef VALUECONTEXT_H
 #define VALUECONTEXT_H
 

@@ -1,3 +1,5 @@
+#include "global.h"
+
 #include "parser.h"
 #include "interpreter.h"
 #include "memory.h"
