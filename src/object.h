@@ -18,7 +18,7 @@ class BuiltInFunction;
 
 enum class ObjectType
 {
-	Object, Function, BuiltIn, Array // TODO: possibly change Undefined to null
+	Object, Function, BuiltIn, Array
 };
 
 // TODO: Forbid copying of this class.

@@ -227,7 +227,7 @@ pair<ValueContext*, Value> ValueContext::namedValue(const string& name)
 	if (parent != nullptr)
 		return parent->namedValue(name);
 
-	return make_pair(nullptr, Value()); // TODO: Return undefined instead.
+	return make_pair(nullptr, Value());
 }
 
 void ValueContext::addNamedValue(const string& name, const Value& value)

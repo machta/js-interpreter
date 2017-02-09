@@ -19,10 +19,15 @@ make
 
 Unsupported language features:
 * var in a for statement: for(**var** i = 0;;)
+* for-loops with "in"
+* switch statement
 * +=, *=, >>=, ...
 * this
 * new
 * throw, try/catch
-* switch
 * regular expressions
 * comma expression, template literal (whatever that is...)
+* accessing arrays with negative index
+* property access with square brackets
+* explicit conversion (cast operator)
+

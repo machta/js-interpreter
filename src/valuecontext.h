@@ -13,7 +13,7 @@ class Memory;
 
 enum class ValueType
 {
-	Undefined, Null, Reference, Boolean, Number, String // TODO: possibly change Undefined to null
+	Undefined, Null, Reference, Boolean, Number, String
 };
 
 class Value

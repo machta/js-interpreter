@@ -556,7 +556,7 @@ void Interpreter::Visit(BlockStatement *stmt)
 
 void Interpreter::Visit(ForStatement *stmt)
 {
-	// TODO: check in for loops with "in".
+	// TODO: for-loops with "in".
 	if (stmt->init())
 	{
 		//contextPush(); // TODO: Maybe turn this back on to support "var i = 0" with local scope
