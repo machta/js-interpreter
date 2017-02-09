@@ -15,7 +15,6 @@ namespace
 #define UNDEFINED Value()
 
 #define NOT_IMPLEMENTED throw runtime_error("feature not implemented")
-//#define NOT_SUPPORTED assert(0)
 
 void registerObject(Memory* memory, Object* o)
 {
@@ -27,13 +26,11 @@ void registerObject(Memory* memory, Object* o)
 void Interpreter::Visit(NullLiteral *literal)
 {
 	temporaryValue() = Value(ValueType::Null);
-//	os() << "null";
 }
 
 void Interpreter::Visit(UndefinedLiteral *literal)
 {
 	temporaryValue() = Value(ValueType::Undefined);
-//	os() << "undefined";
 }
 
 void Interpreter::Visit(ThisHolder *holder)
@@ -45,7 +42,6 @@ void Interpreter::Visit(ThisHolder *holder)
 void Interpreter::Visit(IntegralLiteral *literal)
 {
 	temporaryValue() = Value(literal->value());
-//	os() << literal->value();
 }
 
 void Interpreter::Visit(StringLiteral *literal)
@@ -53,9 +49,6 @@ void Interpreter::Visit(StringLiteral *literal)
 	// Strip the quotes from the literal first.
 	string str = literal->string();
 	temporaryValue() = Value(str.c_str(), str.length());
-
-//	os() << "'" << literal->string() << "'";
-//	os() << literal->string();
 }
 
 void Interpreter::Visit(ArrayLiteral *literal)
@@ -72,15 +65,6 @@ void Interpreter::Visit(ArrayLiteral *literal)
 	}
 
 	temporaryValue() = Value(o);
-
-//	ProxyArray &arr = literal->exprs();
-
-//	os() << "[ ";
-//	for (auto &expr : arr) {
-//		expr->Accept(this);
-//		os() << ", ";
-//	}
-//	os() << "]";
 }
 
 void Interpreter::Visit(ObjectLiteral *literal)
@@ -98,32 +82,18 @@ void Interpreter::Visit(ObjectLiteral *literal)
 	Object* o = new Object(objectContext);
 	registerObject(memory, o);
 	temporaryValue() = Value(o);
-
-//	ProxyObject &obj = literal->proxy();
-
-//	os() << "{ ";
-//	for (auto &p : obj) {
-//		os() << '\'' << p.first << "': ";
-//		p.second->Accept(this);
-//		os() << ", ";
-//	}
-//	os() << "}";
 }
 
 void Interpreter::Visit(Identifier *id)
 {
-//#ifndef NDEBUG
 	temporaryValue() = Value(); // Omitting this causes an error.
-//#endif
-	idName = id->GetName();
 
-//	os() << id->GetName();
+	idName = id->GetName();
 }
 
 void Interpreter::Visit(BooleanLiteral *literal)
 {
 	temporaryValue() = Value(literal->pred());
-//	os() << std::boolalpha << literal->pred();
 }
 
 void Interpreter::Visit(RegExpLiteral *reg)
@@ -164,27 +134,11 @@ void Interpreter::Visit(ArgumentList *args)
 
 		it++;
 	}
-
-//	auto list = args->args();
-//	os() << "(";
-//	if (!list) {
-//		os() << ")";
-//		return;
-//	}
-
-//	auto b = list->begin();
-//	auto e = list->end() - 1;
-
-//	for (; b != e; ++b) {
-//		(*b)->Accept(this);
-//		os() << ", ";
-//	}
-//	(*e)->Accept(this);
-//	os() << ")";
 }
 
 void Interpreter::Visit(CallExpression *expr)
-{ // TODO: Find out why this is not needed.
+{
+	// TODO: Find out why this is not needed.
 	NOT_IMPLEMENTED;
 //	expr->expr()->Accept(this);
 
@@ -273,25 +227,6 @@ void Interpreter::Visit(MemberExpression *expr)
 	default:
 		throw std::runtime_error("bad member expression");
 	}
-
-//	expr->expr()->Accept(this);
-
-//	switch (expr->kind()) {
-//	case MemberAccessKind::kCall:
-//		expr->member()->Accept(this);
-//		break;
-//	case MemberAccessKind::kDot:
-//		os() << ".";
-//		expr->member()->Accept(this);
-//		break;
-//	case MemberAccessKind::kIndex:
-//		os() << "[";
-//		expr->member()->Accept(this);
-//		os() << "]";
-//		break;
-//	default:
-//		throw std::runtime_error("");
-//	}
 }
 
 void Interpreter::Visit(NewExpression *expr)
@@ -325,10 +260,8 @@ void Interpreter::Visit(PrefixExpression *expr)
 		return;
 	}
 //	case PrefixOperation::kTypeOf:
-//		os() << "typeof ";
 //		break;
 //	case PrefixOperation::kDelete:
-//		os() << "delete ";
 //		break;
 	case PrefixOperation::kBitNot:
 	{
@@ -343,38 +276,10 @@ void Interpreter::Visit(PrefixExpression *expr)
 		return;
 	}
 //	case PrefixOperation::kVoid:
-//		os() << "void ";
 //		break;
 	}
 
 	throw runtime_error("invalid prefix operator");
-
-//	switch (expr->op()) {
-//	case PrefixOperation::kIncrement:
-//		os() << "++";
-//		break;
-//	case PrefixOperation::kDecrement:
-//		os() << "--";
-//		break;
-//	case PrefixOperation::kTypeOf:
-//		os() << "typeof ";
-//		break;
-//	case PrefixOperation::kDelete:
-//		os() << "delete ";
-//		break;
-//	case PrefixOperation::kBitNot:
-//		os() << "~";
-//		break;
-//	case PrefixOperation::kNot:
-//		os() << "!";
-//		break;
-//	case PrefixOperation::kVoid:
-//		os() << "void ";
-//		break;
-//	default:
-//		throw std::runtime_error("invalid prefix operator");
-//	}
-//	expr->expr()->Accept(this);
 }
 
 void Interpreter::Visit(PostfixExpression *expr)
@@ -400,18 +305,6 @@ void Interpreter::Visit(PostfixExpression *expr)
 	}
 
 	throw runtime_error("invalid prefix operator");
-
-//	expr->expr()->Accept(this);
-//	switch (expr->op()) {
-//	case PostfixOperation::kIncrement:
-//		os() << "++";
-//		break;
-//	case PostfixOperation::kDecrement:
-//		os() << "--";
-//		break;
-//	default:
-//		throw std::runtime_error("invalid postfix operator");
-//	}
 }
 
 void Interpreter::Visit(BinaryExpression *expr)
@@ -502,10 +395,8 @@ void Interpreter::Visit(BinaryExpression *expr)
 	case BinaryOperation::kStrictNotEqual:
 		temporaryValue() = Value(l != r || lhs.valueType() != rhs.valueType()); return;
 //	case BinaryOperation::kAnd:
-//		os() << "&&";
 //		break;
 //	case BinaryOperation::kOr:
-//		os() << "||";
 //		break;
 	case BinaryOperation::kBitAnd:
 		temporaryValue() = Value(li & ri); return;
@@ -514,7 +405,6 @@ void Interpreter::Visit(BinaryExpression *expr)
 	case BinaryOperation::kBitXor:
 		temporaryValue() = Value(li ^ ri); return;
 //	case BinaryOperation::kInstanceOf:
-//		os() << "instanceof";
 //		break;
 	}
 
@@ -532,77 +422,6 @@ void Interpreter::Visit(BinaryExpression *expr)
 #pragma GCC diagnostic pop
 
 	throw runtime_error("invalid binary operation");
-
-//	expr->lhs()->Accept(this);
-//	os() << " ";
-//	switch (expr->op()) {
-//	case BinaryOperation::kAddition:
-//		os() << "+";
-//		break;
-//	case BinaryOperation::kMultiplication:
-//		os() << "*";
-//		break;
-//	case BinaryOperation::kSubtraction:
-//		os() << "-";
-//		break;
-//	case BinaryOperation::kDivision:
-//		os() << "/";
-//		break;
-//	case BinaryOperation::kMod:
-//		os() << "%";
-//		break;
-//	case BinaryOperation::kShiftRight:
-//		os() << ">>";
-//		break;
-//	case BinaryOperation::kShiftLeft:
-//		os() << "<<";
-//		break;
-//	case BinaryOperation::kLessThan:
-//		os() << "<";
-//		break;
-//	case BinaryOperation::kGreaterThan:
-//		os() << ">";
-//		break;
-//	case BinaryOperation::kLessThanEqual:
-//		os() << "<=";
-//		break;
-//	case BinaryOperation::kGreaterThanEqual:
-//		os() << ">=";
-//		break;
-//	case BinaryOperation::kEqual:
-//		os() << "==";
-//		break;
-//	case BinaryOperation::kNotEqual:
-//		os() << "!=";
-//		break;
-//	case BinaryOperation::kStrictEqual:
-//		os() << "===";
-//		break;
-//	case BinaryOperation::kStrictNotEqual:
-//		os() << "!==";
-//		break;
-//	case BinaryOperation::kAnd:
-//		os() << "&&";
-//		break;
-//	case BinaryOperation::kOr:
-//		os() << "||";
-//		break;
-//	case BinaryOperation::kBitAnd:
-//		os() << "&";
-//		break;
-//	case BinaryOperation::kBitOr:
-//		os() << "|";
-//		break;
-//	case BinaryOperation::kBitXor:
-//		os() << "^";
-//		break;
-//	case BinaryOperation::kInstanceOf:
-//		os() << "instanceof";
-//		break;
-//	default: throw std::runtime_error("invalid binary operation");
-//	}
-//	os() << " ";
-//	expr->rhs()->Accept(this);
 }
 
 // TODO: Implement += and similar assignments.
@@ -649,10 +468,6 @@ void Interpreter::Visit(AssignExpression *expr)
 	//returnVarContext = nullptr;
 	assignArray = nullptr;
 	assignMemberContext = nullptr;
-
-//	expr->lhs()->Accept(this);
-//	os() << " = ";
-//	expr->rhs()->Accept(this);
 }
 
 void Interpreter::Visit(TernaryExpression *expr)
@@ -666,12 +481,6 @@ void Interpreter::Visit(TernaryExpression *expr)
 	{
 		expr->third()->Accept(this);
 	}
-
-//	expr->first()->Accept(this);
-//	os() << " ? ";
-//	expr->second()->Accept(this);
-//	os() << " : ";
-//	expr->third()->Accept(this);
 }
 
 void Interpreter::Visit(CommaExpression *expr)
@@ -705,14 +514,6 @@ void Interpreter::Visit(Declaration *decl)
 	{
 		context().addNamedValue(decl->name(), UNDEFINED);
 	}
-
-//	os() << "var " << decl->name();
-
-//	if (decl->expr()) {
-//		os() << " = ";
-//		decl->expr()->Accept(this);
-//	}
-//	os() << ";\n";
 }
 
 void Interpreter::Visit(DeclarationList *decl_list)
@@ -744,23 +545,11 @@ void Interpreter::Visit(BlockStatement *stmt)
 		if (breakStatement || continueStatement)
 			break;
 	}
-
-//	auto list = stmt->statements();
-
-//	os() << " {\n";
-//	tab()++;
-//	for (auto &expr : *list) {
-//		expr->Accept(this);
-//		os() << ";\n";
-//	}
-//	tab()--;
-//	os() << " }\n";
 }
 
 void Interpreter::Visit(ForStatement *stmt)
 {
 	// TODO: check in for loops with "in".
-	// TODO: hande break and continue
 	if (stmt->init())
 	{
 		//contextPush(); // TODO: Maybe turn this back on to support "var i = 0" with local scope
@@ -799,30 +588,6 @@ void Interpreter::Visit(ForStatement *stmt)
 	{
 		//contextPop();
 	}
-
-//	os() << "for (";
-//	if (stmt->init())
-//		stmt->init()->Accept(this);
-
-//	if (stmt->condition()) {
-//		if (stmt->kind() == ForKind::kForIn) {
-//			os() << " in ";
-//		} else {
-//			os() << "; ";
-//		}
-//		stmt->condition()->Accept(this);
-//	} else {
-//		os() << ";";
-//	}
-
-//	if (stmt->update()) {
-//		os() << "; ";
-//		stmt->update()->Accept(this);
-//	} else {
-//		os() << ";";
-//	}
-//	os() << ")\n";
-//	stmt->body()->Accept(this);
 }
 
 void Interpreter::Visit(WhileStatement *stmt)
@@ -843,13 +608,6 @@ void Interpreter::Visit(WhileStatement *stmt)
 		if (continueStatement)
 			continueStatement = false;
 	}
-
-//	os() << "while (";
-//	stmt->condition()->Accept(this);
-//	os() << ")";
-
-//	stmt->body()->Accept(this);
-//	os() << "\n";
 }
 
 void Interpreter::Visit(DoWhileStatement *stmt)
@@ -862,13 +620,6 @@ void Interpreter::Visit(DoWhileStatement *stmt)
 		if (returnValue().toBoolean() == false)
 			break;
 	}
-
-//	os() << "do\n";
-
-//	stmt->body()->Accept(this);
-//	os() << "while (";
-//	stmt->condition()->Accept(this);
-//	os() << ");\n";
 }
 
 void Interpreter::Visit(BreakStatement *stmt)
@@ -978,31 +729,12 @@ void Interpreter::Visit(FunctionPrototype *proto)
 	Object* o = new Object(fun);
 	registerObject(memory, o);
 	temporaryValue() = Value(o);
-
-//	os() << "function " << proto->GetName() << "(";
-
-//	std::string out;
-//	for (const auto &arg : proto->GetArgs()) {
-//		out += arg + ", ";
-//	}
-
-//	if (proto->GetArgs().size()) {
-//		out.pop_back();
-//		out.pop_back();
-//		os() << out;
-//	}
-//	os() << ")";
 }
 
 void Interpreter::Visit(FunctionStatement *stmt)
 {
 	stmt->proto()->Accept(this);
 	returnValue().reference->functionBody = stmt->body();
-
-//	stmt->proto()->Accept(this);
-//	os() << " {\n";
-//	stmt->body()->Accept(this);
-//	os() << "}\n";
 }
 
 void Interpreter::Visit(IfStatement *stmt)
@@ -1012,11 +744,6 @@ void Interpreter::Visit(IfStatement *stmt)
 	{
 		stmt->body()->Accept(this);
 	}
-
-//	os() << "if (";
-//	stmt->condition()->Accept(this);
-//	os() << ")";
-//	stmt->body()->Accept(this);
 }
 
 void Interpreter::Visit(IfElseStatement *stmt)
@@ -1030,13 +757,6 @@ void Interpreter::Visit(IfElseStatement *stmt)
 	{
 		stmt->els()->Accept(this);
 	}
-
-//	os() << "if (";
-//	stmt->condition()->Accept(this);
-//	os() << ")";
-//	stmt->body()->Accept(this);
-//	os() << " else ";
-//	stmt->els()->Accept(this);
 }
 
 void Interpreter::Visit(ReturnStatement *stmt)
@@ -1048,11 +768,6 @@ void Interpreter::Visit(ReturnStatement *stmt)
 	idName.clear();
 
 	returnStatement = true;
-
-//	os() << "return ";
-//	if (stmt->expr())
-//		stmt->expr()->Accept(this);
-//	os() << ";\n";
 }
 
 void Interpreter::Visit(TemplateLiteral*)

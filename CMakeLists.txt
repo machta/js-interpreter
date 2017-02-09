@@ -5,18 +5,16 @@ project(js-interpreter)
 set(CMAKE_CXX_STANDARD 14)
 set(BUILD_SHARED_LIBS off CACHE BOOL "")
 
-# First build all the library dependencies.
-#add_subdirectory(jast)
+# First handle library dependencies.
 file(GLOB JAST_SRC jast/src/jast/*)
 include_directories(jast/include)
 
-# The library.
+# The interpreter executable.
 include_directories(src)
 file(GLOB SRC src/*.cpp src/*.h)
 list(REMOVE_ITEM SRC ${CMAKE_SOURCE_DIR}/src/main.cpp)
 add_library(js-interpreter-lib ${SRC} ${JAST_SRC})
 
-# The exe.
 add_executable(js-interpreter src/main.cpp)
 target_link_libraries(js-interpreter js-interpreter-lib)
 
