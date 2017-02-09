@@ -36,3 +36,4 @@ TEST(object_test, reference)
 
 	TEST_EXPRESSION(true, "var a = { a: 5 }; var b = { b: 55 }; a = b; b.b == a.b;");
 }
+

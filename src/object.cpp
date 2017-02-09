@@ -1,7 +1,7 @@
 #include "object.h"
 
 #include "memory.h"
-#include "builtinfunction.h"
+#include "functiondeclaration.h"
 
 using namespace std;
 
@@ -19,7 +19,6 @@ Object::~Object()
 		//delete functionBody; // TODO: Make a copy of the body, so that it doesn't get deleted when the AST gets destroyed.
 		return;
 	case ObjectType::Array:
-		delete[] array;
 		return;
 	}
 }
@@ -36,7 +35,7 @@ void Object::mark()
 	case ObjectType::Function:
 		return;
 	case ObjectType::Array:
-		for (int i = 0; i < arrayLength; i++)
+		for (unsigned int i = 0; i < array.size(); i++)
 			array[i].mark();
 		return;
 	}

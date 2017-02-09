@@ -40,7 +40,8 @@ private:
 	bool returnStatement = false;
 	bool breakStatement = false;
 	bool continueStatement = false;
-	Value* assignArray = nullptr;
+	std::vector<Value>* assignArray = nullptr;
+	int assignArrayIndex;
 	ValueContext* assignMemberContext = nullptr;
 	ValueContext* functionContext = nullptr;
 

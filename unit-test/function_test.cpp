@@ -23,12 +23,6 @@ TEST(function_test, scope)
 }
 // TODO: Automatic global variable assignment.
 
-TEST(function_test, built_in)
-{
-	TEST_EXPRESSION(2, "var a = 2; console.log(a); a;");
-	TEST_EXPRESSION(1, "console.log('5*5*5 = ' + 5*5*5); 1;");
-}
-
 TEST(function_test, recursion)
 {
 	TEST_EXPRESSION(5, "var fib = function(n) {	if (n <= 2) return 1; return fib(n - 2) + fib(n - 1); }; fib(5);");

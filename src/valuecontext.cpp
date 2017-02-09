@@ -1,7 +1,7 @@
 #include "valuecontext.h"
 
 #include "object.h"
-#include "builtinfunction.h"
+#include "functiondeclaration.h"
 #include "memory.h"
 
 #include <limits>
@@ -15,10 +15,10 @@ namespace
 
 const double NaN = numeric_limits<double>::quiet_NaN();
 
-class Log : public BuiltInFunction
+class Console_log : public BuiltInFunction
 {
 public:
-	Log()
+	Console_log()
 	{
 		declaration = new FunctionDeclaration("log");
 		declaration->arguments.push_back("message");
@@ -31,6 +31,44 @@ public:
 		return Value();
 	}
 };
+
+Value makeConsole(Memory* memory)
+{
+	ValueContext* context = new ValueContext();
+	context->addNamedValue("log", new Object(new Console_log()));
+
+	Object* o = new Object(context);
+	memory->registerObject(o);
+
+	return Value(o);
+}
+
+class Math_sqrt : public BuiltInFunction
+{
+public:
+	Math_sqrt()
+	{
+		declaration = new FunctionDeclaration("sqrt");
+		declaration->arguments.push_back("n");
+	}
+
+	virtual Value body(ValueContext* context) override
+	{
+		Value n = context->namedValue("n").second;
+		return Value(sqrt(n.toNumber()));
+	}
+};
+
+Value makeMath(Memory* memory)
+{
+	ValueContext* context = new ValueContext();
+	context->addNamedValue("sqrt", new Object(new Math_sqrt()));
+
+	Object* o = new Object(context);
+	memory->registerObject(o);
+
+	return Value(o);
+}
 
 } // namespace
 
@@ -126,10 +164,15 @@ string Value::print()
 
 Value Value::builtInProperty(const string& name)
 {
-	if (name == "length")
+	if (type == ValueType::String)
 	{
-		if (type == ValueType::String)
+		if (name == "length")
 			return Value(static_cast<int>(strlen(stringValue)));
+	}
+	else if (type == ValueType::Reference && reference->objectType() == ObjectType::Array)
+	{
+		if (name == "length")
+			return Value(static_cast<int>(reference->array.size()));
 	}
 
 	return Value();
@@ -196,12 +239,6 @@ void ValueContext::addNamedValue(const string& name, const Value& value)
 
 void ValueContext::initBuiltIn(Memory* memory)
 {
-	ValueContext* context = new ValueContext();
-	context->addNamedValue("log", new Object(new Log()));
-
-	Object* o = new Object(context);
-	memory->registerObject(o);
-
-	Value console(o);
-	addNamedValue("console", console);
+	addNamedValue("console", makeConsole(memory));
+	addNamedValue("Math", makeMath(memory));
 }

@@ -12,7 +12,7 @@ include_directories(jast/include)
 
 # The library.
 include_directories(src)
-file(GLOB SRC src/*.cpp)
+file(GLOB SRC src/*.cpp src/*.h)
 list(REMOVE_ITEM SRC ${CMAKE_SOURCE_DIR}/src/main.cpp)
 add_library(js-interpreter-lib ${SRC} ${JAST_SRC})
 

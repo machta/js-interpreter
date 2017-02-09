@@ -9,6 +9,7 @@
 #include <string>
 #include <unordered_map>
 #include <cassert>
+#include <vector>
 
 class FunctionDeclaration;
 class BuiltInFunction;
@@ -29,14 +30,13 @@ public:
 	FunctionDeclaration* functionDeclaration;
 	jast::Expression* functionBody;
 	BuiltInFunction* builtInFunction;
-	Value* array;
-	int arrayLength;
+	std::vector<Value> array;
 	bool markFlag = false;
 
+	Object() : type(ObjectType::Array) {}
 	Object(ValueContext* value) : type(ObjectType::Object), objectContext(value) {}
 	Object(FunctionDeclaration* value) : type(ObjectType::Function), functionDeclaration(value), functionBody(nullptr) {}
 	Object(BuiltInFunction* value) : type(ObjectType::BuiltIn), builtInFunction(value) {}
-	Object(Value* array, int n) : type(ObjectType::Array), array(array), arrayLength(n) {}
 
 	~Object();
 

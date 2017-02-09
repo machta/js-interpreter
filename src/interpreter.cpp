@@ -2,7 +2,7 @@
 
 #include "object.h"
 #include "memory.h"
-#include "builtinfunction.h"
+#include "functiondeclaration.h"
 
 #include <cmath>
 
@@ -60,19 +60,17 @@ void Interpreter::Visit(StringLiteral *literal)
 
 void Interpreter::Visit(ArrayLiteral *literal)
 {
-	ProxyArray &arr = literal->exprs();
+	ProxyArray& arr = literal->exprs();
 
-	int size = arr.size();
-	Value* array = new Value[size];
+	Object* o = new Object();
+	registerObject(memory, o);
 
-	for (int i = 0; i < size; i++)
+	for (unsigned int i = 0; i < arr.size(); i++)
 	{
 		arr[i]->Accept(this);
-		array[i] = returnValue();
+		o->array.push_back(returnValue());
 	}
 
-	Object* o = new Object(array, size);
-	registerObject(memory, o);
 	temporaryValue() = Value(o);
 
 //	ProxyArray &arr = literal->exprs();
@@ -253,20 +251,23 @@ void Interpreter::Visit(MemberExpression *expr)
 		//contextPop(false);
 		break;
 	}
-	case MemberAccessKind::kIndex: // TODO: Fix property access with the square brackets.
+	case MemberAccessKind::kIndex:
 	{
+		// TODO: Fix property access with the square brackets.
+		// TODO: Implement access with negative index.
 		expr->member()->Accept(this);
 		int index = returnValue().toNumber();
-		if (0 <= index && index < val.reference->arrayLength)
+		if (0 <= index && index < static_cast<int>(val.reference->array.size()))
 		{
 			temporaryValue() = val.reference->array[index];
-			assignArray = val.reference->array + index;
 			//returnVarContext = nullptr;
 		}
 		else
 		{
-			throw std::runtime_error("array index out of bounds");
+			temporaryValue() = Value();
 		}
+		assignArray = &val.reference->array;
+		assignArrayIndex = index;
 		break;
 	}
 	default:
@@ -622,7 +623,13 @@ void Interpreter::Visit(AssignExpression *expr)
 	{
 		if (assignArray != nullptr)
 		{
-			*assignArray = rhs;
+			auto& array = *assignArray;
+
+			int overflow = assignArrayIndex + 1 - array.size();
+			if (overflow > 0)
+				array.insert(array.end(), overflow, Value());
+
+			array[assignArrayIndex] = rhs;
 		}
 		else
 		{
