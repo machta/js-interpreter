@@ -28,3 +28,8 @@ TEST(function_test, recursion)
 	TEST_EXPRESSION(5, "var fib = function(n) {	if (n <= 2) return 1; return fib(n - 2) + fib(n - 1); }; fib(5);");
 	TEST_EXPRESSION(4181, "var fib = function(n) { if (n <= 2) return 1; return fib(n - 2) + fib(n - 1); }; fib(19);");
 }
+
+TEST(function_test, unknown_function)
+{
+	EXPECT_THROW(RUN_EXPRESSION("var fun = function(){ var a = 5;}; ffun(); var x = 5; var y = 2; var z = x + y;"), std::runtime_error);
+}

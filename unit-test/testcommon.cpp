@@ -59,3 +59,8 @@ void TestCommon::testExpression(const string& answer, const string& code)
 	Value res = execute(code);
 	EXPECT_EQ(answer, res.toString());
 }
+
+Value TestCommon::runExpression(const string& code)
+{
+	return execute(code);
+}

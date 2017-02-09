@@ -169,19 +169,26 @@ void Interpreter::Visit(MemberExpression *expr)
 	{
 	case MemberAccessKind::kCall:
 	{
-		ValueContext* fc = new ValueContext(globalContext);
-		functionContext = fc;
-		expr->member()->Accept(this);
-
-		contextPush(fc);
-		functionContext = nullptr;
-
-		if (val.reference->objectType() == ObjectType::BuiltIn)
-			temporaryValue() = val.reference->builtInFunction->body(&context());
+		if (val.valueType() == ValueType::Undefined)
+		{
+			throw runtime_error("function is not defined");
+		}
 		else
-			val.reference->functionBody->Accept(this);
+		{
+			ValueContext* fc = new ValueContext(globalContext);
+			functionContext = fc;
+			expr->member()->Accept(this);
 
-		contextPop(true);
+			contextPush(fc);
+			functionContext = nullptr;
+
+			if (val.reference->objectType() == ObjectType::BuiltIn)
+				temporaryValue() = val.reference->builtInFunction->body(&context());
+			else
+				val.reference->functionBody->Accept(this);
+
+			contextPop(true);
+		}
 		break;
 	}
 	case MemberAccessKind::kDot:
@@ -225,7 +232,7 @@ void Interpreter::Visit(MemberExpression *expr)
 		break;
 	}
 	default:
-		throw std::runtime_error("bad member expression");
+		throw runtime_error("bad member expression");
 	}
 }
 

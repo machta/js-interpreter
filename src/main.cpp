@@ -41,7 +41,7 @@ bool parseAndInterpret(const string& line, Parser& p, Interpreter& interpreter)
 	}
 	else
 	{
-		//cerr << "Parser error: " << errorMessage << endl;
+		//cerr << "Parser error: " << errorMessage << endl; // This is not needed as the parser prints the error message for me.
 	}
 	return false;
 }
